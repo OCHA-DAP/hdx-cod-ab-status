@@ -1,4 +1,5 @@
-import adapter from "@sveltejs/adapter-auto";
+import adapter from "@sveltejs/adapter-static";
+import { env } from "process";
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
@@ -7,6 +8,9 @@ const config = {
   },
   kit: {
     adapter: adapter(),
+    paths: {
+      base: env.BASE_PATH ?? "",
+    },
   },
 };
 
