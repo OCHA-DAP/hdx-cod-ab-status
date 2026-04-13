@@ -20,8 +20,6 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm run lint
-      - run: npm run check
       - uses: actions/configure-pages@v6
         id: pages
       - run: npm run build

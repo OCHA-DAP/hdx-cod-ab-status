@@ -242,7 +242,11 @@ export function loadData() {
             ? tComp
             : woStatusRank(a.work_order_status) - woStatusRank(b.work_order_status);
         });
-      return { year, rows, gapCount: rows.filter((r) => !r.work_order_status && r.change_expected).length };
+      return {
+        year,
+        rows,
+        gapCount: rows.filter((r) => !r.work_order_status && r.change_expected).length,
+      };
     });
 
   return {
