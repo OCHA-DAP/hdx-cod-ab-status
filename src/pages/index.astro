@@ -4,7 +4,12 @@ import { loadData } from "../lib/loadData.ts";
 const data = loadData();
 const priorYears = data.yearStats.filter((y) => y.year !== data.latestYear);
 const syncedAtFormatted = data.syncedAt
-  ? new Date(data.syncedAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" })
+  ? new Date(data.syncedAt).toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      timeZone: "UTC",
+    })
   : null;
 
 function statusClass(status: string): string {
