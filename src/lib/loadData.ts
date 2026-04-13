@@ -162,7 +162,7 @@ export function loadData() {
       year: wo.year,
       work_order_id: wo.id ?? "",
       work_order_status: wo.status ?? "",
-      plan_type: plan ? plan.types.join(" / ") : "",
+      plan_type: plan ? plan.types.map((t) => t.toUpperCase()).join(" / ") : "",
       admin_level: plan?.admin ?? "",
       change_expected: review.change_expected === "TRUE",
       planned_quarter: wo.planned_quarter ?? "",
@@ -227,7 +227,7 @@ export function loadData() {
           return {
             iso3,
             name_en: geo.name_en ?? iso3,
-            plan_types: plan.types.join(" / "),
+            plan_types: plan.types.map((t) => t.toUpperCase()).join(" / "),
             admin_level: plan.admin ?? "",
             change_expected: review.change_expected === "TRUE",
             work_order_status: wo?.status ?? "",
@@ -242,7 +242,7 @@ export function loadData() {
             ? tComp
             : woStatusRank(a.work_order_status) - woStatusRank(b.work_order_status);
         });
-      return { year, rows, gapCount: rows.filter((r) => !r.work_order_status).length };
+      return { year, rows, gapCount: rows.filter((r) => !r.work_order_status && r.change_expected).length };
     });
 
   return {

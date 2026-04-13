@@ -327,7 +327,7 @@ function statusLabel(status: string): string {
               </thead>
               <tbody>
                 {pcg.rows.map((row) => (
-                  <tr class={!row.work_order_status ? "row-gap" : ""}>
+                  <tr class={!row.work_order_status && row.change_expected ? "row-gap" : ""}>
                     <td>
                       {row.name_en} <span class="iso3">{row.iso3}</span>
                     </td>
