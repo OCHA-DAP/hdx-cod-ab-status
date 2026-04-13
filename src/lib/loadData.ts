@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import Papa from "papaparse";
 
 export interface PipelineCount {
@@ -84,14 +87,22 @@ function groupByQuarter(rows: WorkOrderRow[]): ScheduleGroup[] {
     .map(([quarter, rows]) => ({ quarter, rows }));
 }
 
-export async function load({ fetch }) {
-  const [m49Text, planText, reviewText, workText, officesText] = await Promise.all([
-    fetch("/data/m49.csv").then((r) => r.text()),
-    fetch("/data/plans.csv").then((r) => r.text()),
-    fetch("/data/reviews.csv").then((r) => r.text()),
-    fetch("/data/work.csv").then((r) => r.text()),
-    fetch("/data/offices.csv").then((r) => r.text()),
-  ]);
+export function loadData() {
+  const dataDir = join(process.cwd(), "public/data");
+  const [m49Text, planText, reviewText, workText, officesText] = [
+    "m49.csv",
+    "plans.csv",
+    "reviews.csv",
+    "work.csv",
+    "offices.csv",
+  ].map((f) => readFileSync(join(dataDir, f), "utf-8"));
+
+  let syncedAt: string | null = null;
+  try {
+    syncedAt = readFileSync(join(dataDir, "last_synced.txt"), "utf-8").trim();
+  } catch {
+    // file won't exist until sync-data.sh has been run
+  }
 
   const m49 = parseCsv(m49Text);
   const plans = parseCsv(planText);
@@ -170,7 +181,8 @@ export async function load({ fetch }) {
   const yearStats: YearStat[] = years.map((year) => {
     const yearRows = allRows.filter((r) => r.year === year);
     const countMap: Record<string, number> = {};
-    for (const r of yearRows) countMap[r.work_order_status] = (countMap[r.work_order_status] ?? 0) + 1;
+    for (const r of yearRows)
+      countMap[r.work_order_status] = (countMap[r.work_order_status] ?? 0) + 1;
     const pipeline = STATUS_ORDER.filter((s) => countMap[s]).map((s) => ({
       status: s,
       label: STATUS_LABELS[s],
@@ -190,13 +202,17 @@ export async function load({ fetch }) {
     .filter((r) => r.year === latestYear)
     .sort((a, b) => woStatusRank(a.work_order_status) - woStatusRank(b.work_order_status));
   const currentByQuarter = groupByQuarter(
-    currentCycleWork.filter((r) => r.work_order_status !== "published")
+    currentCycleWork.filter((r) => r.work_order_status !== "published"),
   );
 
   // Blocked: all blocked work orders across all years
   const blocked = allRows
     .filter((r) => r.work_order_status === "on_hold" || r.work_order_status === "awaiting_dataset")
-    .sort((a, b) => a.year.localeCompare(b.year) || woStatusRank(a.work_order_status) - woStatusRank(b.work_order_status));
+    .sort(
+      (a, b) =>
+        a.year.localeCompare(b.year) ||
+        woStatusRank(a.work_order_status) - woStatusRank(b.work_order_status),
+    );
 
   // Plan coverage per year (newest first)
   const planCoverageByYear: PlanCoverageYear[] = Object.entries(plansByYear)
@@ -222,7 +238,9 @@ export async function load({ fetch }) {
         .sort((a, b) => {
           const typeRank = (t: string) => (t === "hrp" ? 0 : t.includes("hrp") ? 1 : 2);
           const tComp = typeRank(a.plan_types) - typeRank(b.plan_types);
-          return tComp !== 0 ? tComp : woStatusRank(a.work_order_status) - woStatusRank(b.work_order_status);
+          return tComp !== 0
+            ? tComp
+            : woStatusRank(a.work_order_status) - woStatusRank(b.work_order_status);
         });
       return { year, rows, gapCount: rows.filter((r) => !r.work_order_status).length };
     });
@@ -237,5 +255,6 @@ export async function load({ fetch }) {
     blocked,
     planCoverageByYear,
     total: allRows.length,
+    syncedAt,
   };
 }

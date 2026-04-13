@@ -2,7 +2,7 @@
 # Syncs all CSV files from OneDrive Activity Tracker into static/data/
 
 SRC="/Users/computer/Library/CloudStorage/OneDrive-UnitedNations/OCHA GIS - OCHAGIS/CODs/1_Docs/Activity Tracker/AT2"
-DEST="$(dirname "$0")/static/data"
+DEST="$(dirname "$0")/public/data"
 
 mkdir -p "$DEST"
 
@@ -30,4 +30,5 @@ if [ "$copied" -eq 0 ]; then
   exit 1
 fi
 
+date -u +"%Y-%m-%dT%H:%M:%SZ" > "$DEST/last_synced.txt"
 echo "Done. $copied file(s) copied, $deleted file(s) deleted in $DEST"
