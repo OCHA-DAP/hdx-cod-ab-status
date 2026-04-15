@@ -1,0 +1,70 @@
+---
+import type { PlanCoverageYear } from "../lib/loadData.ts";
+import { statusClass, statusLabel } from "../lib/status.ts";
+
+interface Props {
+  planCoverageByYear: PlanCoverageYear[];
+}
+
+const { planCoverageByYear } = Astro.props;
+---
+
+{
+  planCoverageByYear.map((pcg) => (
+    <section>
+      <h2>
+        HRP / FA Plan Coverage — {pcg.year}
+        {pcg.gapCount > 0 ? (
+          <span class="count-chip warn">
+            {pcg.gapCount} gap{pcg.gapCount !== 1 ? "s" : ""}
+          </span>
+        ) : (
+          <span class="count-chip done">Fully covered</span>
+        )}
+      </h2>
+      <p class="section-desc">
+        All countries with an active HRP or Flash Appeal plan for {pcg.year}. Highlighted rows have
+        no work order assigned.
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Country</th>
+            <th>Plan Type</th>
+            <th>Admin Level</th>
+            <th>Change Expected</th>
+            <th>Work Order Status</th>
+            <th>Planned Quarter</th>
+            <th>Regional Office</th>
+          </tr>
+        </thead>
+        <tbody>
+          {pcg.rows.map((row) => (
+            <tr class={!row.work_order_status && row.change_expected ? "row-gap" : ""}>
+              <td>
+                {row.name_en} <span class="iso3">{row.iso3}</span>
+              </td>
+              <td>{row.plan_types}</td>
+              <td>{row.admin_level || "—"}</td>
+              <td class={row.change_expected ? "flag-yes" : ""}>
+                {row.change_expected ? "Yes" : "No"}
+              </td>
+              <td>
+                {row.work_order_status ? (
+                  <span class={`badge ${statusClass(row.work_order_status)}`}>
+                    {statusLabel(row.work_order_status)}
+                  </span>
+                ) : (
+                  <span class="badge s-none">No work order</span>
+                )}
+              </td>
+              <td>{row.planned_quarter || "—"}</td>
+              <td>{row.regional || "—"}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
+  ))
+}

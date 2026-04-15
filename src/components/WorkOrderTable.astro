@@ -1,0 +1,48 @@
+---
+import type { ScheduleGroup } from "../lib/loadData.ts";
+import { statusClass, statusLabel } from "../lib/status.ts";
+
+interface Props {
+  groups: ScheduleGroup[];
+}
+
+const { groups } = Astro.props;
+---
+
+{
+  groups.map((group) => (
+    <Fragment>
+      <h3 class="quarter-heading">{group.quarter}</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Country</th>
+            <th>Status</th>
+            <th>Plan Type</th>
+            <th>Change Expected</th>
+            <th>Regional Office</th>
+          </tr>
+        </thead>
+        <tbody>
+          {group.rows.map((row) => (
+            <tr>
+              <td>
+                {row.name_en} <span class="iso3">{row.iso3}</span>
+              </td>
+              <td>
+                <span class={`badge ${statusClass(row.work_order_status)}`}>
+                  {statusLabel(row.work_order_status)}
+                </span>
+              </td>
+              <td>{row.plan_type || "—"}</td>
+              <td class={row.change_expected ? "flag-yes" : ""}>
+                {row.change_expected ? "Yes" : "No"}
+              </td>
+              <td>{row.regional || "—"}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </Fragment>
+  ))
+}

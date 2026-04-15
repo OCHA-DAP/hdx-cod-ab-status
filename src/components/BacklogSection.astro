@@ -1,0 +1,31 @@
+---
+import type { ScheduleGroup } from "../lib/loadData.ts";
+import WorkOrderTable from "./WorkOrderTable.astro";
+
+interface Props {
+  year: string;
+  backlogCount: number;
+  groups: ScheduleGroup[];
+}
+
+const { year, backlogCount, groups } = Astro.props;
+---
+
+<section>
+  <h2>
+    {year} Backlog
+    <span class={`count-chip ${backlogCount === 0 ? "done" : "warn"}`}>
+      {backlogCount === 0 ? "All published" : `${backlogCount} remaining`}
+    </span>
+  </h2>
+  <p class="section-desc">
+    Work orders from the {year} cycle that have not yet been published.
+  </p>
+  {
+    backlogCount === 0 ? (
+      <p class="empty">All {year} work orders have been published.</p>
+    ) : (
+      <WorkOrderTable groups={groups} />
+    )
+  }
+</section>

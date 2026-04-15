@@ -51,6 +51,12 @@ export interface PlanCoverageYear {
   gapCount: number;
 }
 
+export interface PreparednessCountry {
+  iso3: string;
+  name_en: string;
+  regional: string;
+}
+
 function parseCsv(text: string): Record<string, string>[] {
   return Papa.parse<Record<string, string>>(text, {
     header: true,
@@ -119,9 +125,11 @@ export function loadData() {
   }
   const officeByIso3 = Object.fromEntries(offices.map((r) => [r.iso3, r]));
 
-  // Plans grouped by year → iso3
+  // Plans grouped by year → iso3 (HRP and FA only, for plan coverage table)
+  const coveragePlanTypes = new Set(["hrp", "fa"]);
   const plansByYear: Record<string, Record<string, { types: string[]; admin: string }>> = {};
   for (const p of plans) {
+    if (!coveragePlanTypes.has(p.type)) continue;
     if (!plansByYear[p.year]) plansByYear[p.year] = {};
     const byIso3 = plansByYear[p.year];
     if (!byIso3[p.iso3]) {
@@ -132,9 +140,10 @@ export function loadData() {
     }
   }
 
-  // Flat plan lookup by iso3 (all years merged) for work order enrichment
+  // Flat plan lookup by iso3 (all years merged, HRP and FA only) for work order enrichment
   const planByIso3: Record<string, { types: string[]; admin: string }> = {};
   for (const p of plans) {
+    if (!coveragePlanTypes.has(p.type)) continue;
     if (!planByIso3[p.iso3]) {
       planByIso3[p.iso3] = { types: [p.type], admin: p.admin ?? "" };
     } else {
@@ -249,6 +258,25 @@ export function loadData() {
       };
     });
 
+  function buildCountryList(type: string): PreparednessCountry[] {
+    const seen = new Set<string>();
+    return plans
+      .filter((r) => r.type === type && !seen.has(r.iso3) && seen.add(r.iso3))
+      .map((r) => {
+        const geo = m49ByIso3[r.iso3] ?? {};
+        const office = officeByIso3[r.iso3] ?? {};
+        return {
+          iso3: r.iso3,
+          name_en: geo.name_en ?? r.iso3,
+          regional: office.regional ?? "",
+        };
+      })
+      .sort((a, b) => a.name_en.localeCompare(b.name_en));
+  }
+
+  const preparednessCountries = buildCountryList("preparedness");
+  const noPlanCountries = buildCountryList("other");
+
   return {
     yearStats,
     latestYear,
@@ -258,6 +286,8 @@ export function loadData() {
     currentByQuarter,
     blocked,
     planCoverageByYear,
+    preparednessCountries,
+    noPlanCountries,
     total: allRows.length,
     syncedAt,
   };

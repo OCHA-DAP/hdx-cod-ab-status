@@ -1,0 +1,65 @@
+---
+import type { WorkOrderRow } from "../lib/loadData.ts";
+import { statusClass, statusLabel } from "../lib/status.ts";
+
+interface Props {
+  blocked: WorkOrderRow[];
+}
+
+const { blocked } = Astro.props;
+---
+
+<section>
+  <h2>
+    Blocked Work Orders
+    <span class={`count-chip ${blocked.length > 0 ? "warn" : "done"}`}>
+      {blocked.length}
+    </span>
+  </h2>
+  <p class="section-desc">
+    All work orders currently on hold or awaiting a dataset, across all cycles.
+  </p>
+
+  {
+    blocked.length === 0 ? (
+      <p class="empty">No blocked work orders.</p>
+    ) : (
+      <table>
+        <thead>
+          <tr>
+            <th>Country</th>
+            <th>Cycle</th>
+            <th>Work Order ID</th>
+            <th>Status</th>
+            <th>Plan Type</th>
+            <th>Change Expected</th>
+            <th>Created</th>
+            <th>Regional Office</th>
+          </tr>
+        </thead>
+        <tbody>
+          {blocked.map((row) => (
+            <tr>
+              <td>
+                {row.name_en} <span class="iso3">{row.iso3}</span>
+              </td>
+              <td>{row.year}</td>
+              <td class="mono">{row.work_order_id}</td>
+              <td>
+                <span class={`badge ${statusClass(row.work_order_status)}`}>
+                  {statusLabel(row.work_order_status)}
+                </span>
+              </td>
+              <td>{row.plan_type || "—"}</td>
+              <td class={row.change_expected ? "flag-yes" : ""}>
+                {row.change_expected ? "Yes" : "No"}
+              </td>
+              <td>{row.created_date}</td>
+              <td>{row.regional || "—"}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    )
+  }
+</section>

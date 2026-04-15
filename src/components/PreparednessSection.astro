@@ -1,0 +1,80 @@
+---
+import type { PreparednessCountry } from "../lib/loadData.ts";
+
+interface Props {
+  preparednessCountries: PreparednessCountry[];
+  noPlanCountries: PreparednessCountry[];
+}
+
+const { preparednessCountries, noPlanCountries } = Astro.props;
+---
+
+<section>
+  <h2>
+    Preparedness Countries
+    <span class="count-chip">{preparednessCountries.length}</span>
+  </h2>
+  <p class="section-desc">
+    Countries in preparedness scope — not currently covered by an HRP or Flash Appeal plan.
+  </p>
+
+  {
+    preparednessCountries.length > 0 ? (
+      <table>
+        <thead>
+          <tr>
+            <th>Country</th>
+            <th>Regional Office</th>
+          </tr>
+        </thead>
+        <tbody>
+          {preparednessCountries.map((row) => (
+            <tr>
+              <td>
+                {row.name_en} <span class="iso3">{row.iso3}</span>
+              </td>
+              <td>{row.regional || "—"}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    ) : (
+      <p class="empty">No preparedness countries found.</p>
+    )
+  }
+</section>
+
+<section>
+  <h2>
+    No Plan / Not in Preparedness Scope
+    <span class="count-chip">{noPlanCountries.length}</span>
+  </h2>
+  <p class="section-desc">
+    Countries with no active HRP, Flash Appeal, or preparedness plan.
+  </p>
+
+  {
+    noPlanCountries.length > 0 ? (
+      <table>
+        <thead>
+          <tr>
+            <th>Country</th>
+            <th>Regional Office</th>
+          </tr>
+        </thead>
+        <tbody>
+          {noPlanCountries.map((row) => (
+            <tr>
+              <td>
+                {row.name_en} <span class="iso3">{row.iso3}</span>
+              </td>
+              <td>{row.regional || "—"}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    ) : (
+      <p class="empty">No countries found.</p>
+    )
+  }
+</section>

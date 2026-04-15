@@ -1,0 +1,132 @@
+---
+import type { YearStat } from "../lib/loadData.ts";
+import { statusClass } from "../lib/status.ts";
+
+interface Props {
+  yearStats: YearStat[];
+  latestYear: string;
+}
+
+const { yearStats, latestYear } = Astro.props;
+---
+
+<style>
+  /* ── Cycle overview grid ─────────────────────────────────────── */
+  .cycle-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .cycle-card {
+    border-radius: 6px;
+    border: 1px solid #e2e5ea;
+    padding: 1rem 1.25rem;
+    background: #fff;
+  }
+
+  .cycle-card.current {
+    border-color: #93c5fd;
+    background: #eff6ff;
+  }
+
+  .cycle-header {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .cycle-year {
+    font-size: 1.1rem;
+    font-weight: 700;
+  }
+
+  .cycle-tag {
+    font-size: 0.75rem;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  /* ── Stat cards ─────────────────────────────────────────────── */
+  .stat-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .stat-card {
+    flex: 1 1 90px;
+    border-radius: 5px;
+    padding: 0.6rem 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    border: 1px solid transparent;
+  }
+
+  .stat-num {
+    font-size: 1.6rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .stat-lbl {
+    font-size: 0.72rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #444;
+  }
+
+  .stat-card.s-published {
+    background: #c6efce;
+    border-color: #93d09a;
+  }
+  .stat-card.s-progress {
+    background: #fff2cc;
+    border-color: #f5d262;
+  }
+  .stat-card.s-awaiting {
+    background: #fce4d6;
+    border-color: #f4b183;
+  }
+  .stat-card.s-hold {
+    background: #ffc7ce;
+    border-color: #f09098;
+  }
+  .stat-card.s-total {
+    background: #e8edf5;
+    border-color: #c0cade;
+  }
+</style>
+
+<div class="cycle-grid">
+  {
+    yearStats.map((ys) => {
+      const isCurrent = ys.year === latestYear;
+      return (
+        <div class={`cycle-card ${isCurrent ? "current" : "backlog-card"}`}>
+          <div class="cycle-header">
+            <span class="cycle-year">{ys.year}</span>
+            <span class="cycle-tag">{isCurrent ? "Current cycle" : "Backlog"}</span>
+          </div>
+          <div class="stat-grid">
+            {ys.pipeline.map((item) => (
+              <div class={`stat-card ${statusClass(item.status)}`}>
+                <span class="stat-num">{item.count}</span>
+                <span class="stat-lbl">{item.label}</span>
+              </div>
+            ))}
+            <div class="stat-card s-total">
+              <span class="stat-num">{ys.total}</span>
+              <span class="stat-lbl">Total</span>
+            </div>
+          </div>
+        </div>
+      );
+    })
+  }
+</div>
