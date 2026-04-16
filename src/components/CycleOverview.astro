@@ -124,7 +124,6 @@ const { yearStats, latestYear } = Astro.props;
           <div class="cycle-header">
             <span class="cycle-year">{ys.year}</span>
             <span class="cycle-tag">{isCurrent ? "Current cycle" : "Backlog"}</span>
-            <span class="cycle-total">{ys.total} total</span>
           </div>
           <div class="stat-grid">
             {ys.pipeline.map((item) => (

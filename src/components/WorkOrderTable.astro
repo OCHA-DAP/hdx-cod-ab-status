@@ -25,7 +25,13 @@ function ageLabel(createdDate: string): string | null {
 {
   groups.map((group) => (
     <Fragment>
-      <h3 class="quarter-heading">{group.quarter}</h3>
+      <h3 class="quarter-heading">
+        {group.quarter}
+        {(() => {
+          const remaining = group.rows.filter((r) => r.work_order_status !== "published").length;
+          return remaining > 0 ? <span class="count-chip">{remaining} remaining</span> : null;
+        })()}
+      </h3>
       <table>
         <colgroup>
           <col style="width: 25%" />

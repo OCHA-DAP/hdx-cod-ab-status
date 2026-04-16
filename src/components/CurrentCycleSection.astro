@@ -14,7 +14,14 @@ const { latestYear, currentCycleWork, currentByQuarter } = Astro.props;
 <section>
   <h2>
     {latestYear} Work Orders
-    <span class="count-chip">{currentCycleWork.length} total</span>
+    {(() => {
+      const remaining = currentCycleWork.filter((r) => r.work_order_status !== "published").length;
+      return (
+        <span class={`count-chip ${remaining === 0 ? "done" : ""}`}>
+          {remaining === 0 ? "All published" : `${remaining} remaining`}
+        </span>
+      );
+    })()}
   </h2>
   <p class="section-desc">
     All work orders in the {latestYear} cycle, grouped by planned delivery quarter.

@@ -22,7 +22,7 @@ const { priorYears, backlog, backlogByQuarter, reviewGapsByYear } = Astro.props;
     return (
       <BacklogSection
         year={ys.year}
-        backlogCount={yearBacklog.length}
+        backlogCount={yearBacklog.filter((r) => r.work_order_status !== "published").length}
         groups={yearGroups}
         gapRows={gapRows}
       />
