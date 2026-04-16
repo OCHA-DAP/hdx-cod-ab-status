@@ -25,12 +25,12 @@ const { planGroups } = Astro.props;
               {group.key === "prior_only" && <th>Years</th>}
               <th>Office Type</th>
               <th>Regional Office</th>
-              <th>In ArcGIS</th>
+              <th>In GIS</th>
             </tr>
           </thead>
           <tbody>
             {group.countries.map((row) => (
-              <tr class={row.inArcgis ? "" : "row-gap"}>
+              <tr class={row.inGis ? "" : "row-gap"}>
                 <td>
                   {row.name_en} <span class="iso3">{row.iso3}</span>
                 </td>
@@ -38,8 +38,8 @@ const { planGroups } = Astro.props;
                 {group.key === "prior_only" && <td>{row.year_range ?? "—"}</td>}
                 <td>{row.office_type || "—"}</td>
                 <td>{row.regional || "—"}</td>
-                <td class={row.inArcgis ? "flag-yes" : "flag-no"}>
-                  {row.inArcgis ? "Yes" : "No"}
+                <td class={row.inGis ? "flag-yes" : "flag-no"}>
+                  {row.inGis ? "Yes" : "No"}
                 </td>
               </tr>
             ))}

@@ -21,7 +21,7 @@ if dotenv.exists():
 
 OUTPUT_DIR = Path(__file__).parent.parent / "public" / "api"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-OUTPUT = OUTPUT_DIR / "arcgis.csv"
+OUTPUT = OUTPUT_DIR / "gis.csv"
 
 username = os.environ.get("ARCGIS_USERNAME")
 password = os.environ.get("ARCGIS_PASSWORD")

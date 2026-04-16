@@ -80,6 +80,10 @@ section > h3.quarter-heading:first-of-type {
 }
 
 /* ── Tables ─────────────────────────────────────────────────── */
+.table-scroll {
+  overflow-x: auto;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;

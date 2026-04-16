@@ -55,12 +55,12 @@ export interface PlanCountry {
   regional: string;
   office_type: string;
   plan_types: string[];
-  inArcgis: boolean;
+  inGis: boolean;
   year_range?: string;
 }
 
 export interface PlanGroup {
-  key: "current_priority" | "current_other" | "prior_only" | "arcgis_only" | "m49_only";
+  key: "current_priority" | "current_other" | "prior_only" | "gis_only" | "m49_only";
   label: string;
   countries: PlanCountry[];
 }
@@ -226,15 +226,6 @@ export function loadData() {
     currentCycleWork.filter((r) => r.work_order_status !== "published"),
   );
 
-  // Blocked: all blocked work orders across all years
-  const blocked = allRows
-    .filter((r) => r.work_order_status === "on_hold" || r.work_order_status === "awaiting_dataset")
-    .sort(
-      (a, b) =>
-        a.year.localeCompare(b.year) ||
-        woStatusRank(a.work_order_status) - woStatusRank(b.work_order_status),
-    );
-
   // Plan coverage per year (newest first)
   const planCoverageByYear: PlanCoverageYear[] = Object.entries(plansByYear)
     .sort(([a], [b]) => b.localeCompare(a))
@@ -269,9 +260,9 @@ export function loadData() {
       };
     });
 
-  // Load ArcGIS catalog country list
-  const arcgisText = readFileSync(join(apiDir, "arcgis.csv"), "utf-8");
-  const arcgisIso3 = new Set(parseCsv(arcgisText).map((r) => r.iso3));
+  // Load gis.unocha.org catalog country list
+  const gisText = readFileSync(join(apiDir, "gis.csv"), "utf-8");
+  const gisIso3 = new Set(parseCsv(gisText).map((r) => r.iso3));
 
   // Build plan groups from the plans data
   const latestPlanYear = [...new Set(plans.map((p) => p.year))].sort().at(-1) ?? "";
@@ -303,7 +294,7 @@ export function loadData() {
         regional: office.regional ?? "",
         office_type: officeTypeByIso3[iso3] ?? "",
         plan_types: currentTypes,
-        inArcgis: arcgisIso3.has(iso3),
+        inGis: gisIso3.has(iso3),
       };
       if (hasPriority) {
         currentPriority.push(country);
@@ -325,27 +316,27 @@ export function loadData() {
         regional: office.regional ?? "",
         office_type: officeTypeByIso3[iso3] ?? "",
         plan_types: priorTypes,
-        inArcgis: arcgisIso3.has(iso3),
+        inGis: gisIso3.has(iso3),
         year_range,
       });
     }
   }
 
   const allPlanIso3 = new Set(plansByIso3.keys());
-  const arcgisOnly: PlanCountry[] = [...arcgisIso3]
+  const gisOnly: PlanCountry[] = [...gisIso3]
     .filter((iso3) => !allPlanIso3.has(iso3))
     .map((iso3) => {
       const geo = m49ByIso3[iso3] ?? {};
       const office = officeByIso3[iso3] ?? {};
-      return { iso3, name_en: geo.name_en ?? iso3, regional: office.regional ?? "", office_type: officeTypeByIso3[iso3] ?? "", plan_types: [], inArcgis: true };
+      return { iso3, name_en: geo.name_en ?? iso3, regional: office.regional ?? "", office_type: officeTypeByIso3[iso3] ?? "", plan_types: [], inGis: true };
     })
     .sort((a, b) => a.name_en.localeCompare(b.name_en));
 
   const m49Only: PlanCountry[] = Object.entries(m49ByIso3)
-    .filter(([iso3]) => !allPlanIso3.has(iso3) && !arcgisIso3.has(iso3) && iso3 !== "")
+    .filter(([iso3]) => !allPlanIso3.has(iso3) && !gisIso3.has(iso3) && iso3 !== "")
     .map(([iso3, geo]) => {
       const office = officeByIso3[iso3] ?? {};
-      return { iso3, name_en: geo.name_en ?? iso3, regional: office.regional ?? "", office_type: officeTypeByIso3[iso3] ?? "", plan_types: [], inArcgis: false };
+      return { iso3, name_en: geo.name_en ?? iso3, regional: office.regional ?? "", office_type: officeTypeByIso3[iso3] ?? "", plan_types: [], inGis: false };
     })
     .sort((a, b) => a.name_en.localeCompare(b.name_en));
 
@@ -361,7 +352,7 @@ export function loadData() {
         return endYear(b).localeCompare(endYear(a)) || a.iso3.localeCompare(b.iso3);
       }),
     },
-    { key: "arcgis_only", label: "No Plans — ArcGIS Catalog", countries: arcgisOnly },
+    { key: "gis_only", label: "No Plans — gis.unocha.org", countries: gisOnly },
     { key: "m49_only", label: "No Plans — Rest of M49", countries: m49Only },
   ];
 
@@ -372,7 +363,6 @@ export function loadData() {
     backlogByQuarter,
     currentCycleWork,
     currentByQuarter,
-    blocked,
     planCoverageByYear,
     planGroups,
     total: allRows.length,
