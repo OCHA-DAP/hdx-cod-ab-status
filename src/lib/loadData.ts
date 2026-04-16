@@ -178,7 +178,7 @@ export function loadData() {
     const geo = m49ByIso3[wo.iso3] ?? {};
     const review = reviewByKey[`${wo.iso3}:${wo.year}`] ?? reviewByKey[wo.iso3] ?? {};
     const office = officeByIso3[wo.iso3] ?? {};
-    const plan = planByIso3[wo.iso3];
+    const plan = plansByYear[wo.year]?.[wo.iso3];
     return {
       iso3: wo.iso3,
       name_en: geo.name_en ?? wo.iso3,

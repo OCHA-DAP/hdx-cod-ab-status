@@ -7,6 +7,19 @@ interface Props {
 }
 
 const { groups } = Astro.props;
+
+function ageLabel(createdDate: string): string | null {
+  if (!createdDate) return null;
+  const created = new Date(createdDate);
+  const today = new Date();
+  const days = Math.floor((today.getTime() - created.getTime()) / (1000 * 60 * 60 * 24));
+  if (days > 31) {
+    const months = days / 30.44;
+    const formatted = months < 2 ? months.toFixed(1) : Math.round(months).toString();
+    return `${formatted} months`;
+  }
+  return `${days} day${days === 1 ? "" : "s"}`;
+}
 ---
 
 {
@@ -15,16 +28,18 @@ const { groups } = Astro.props;
       <h3 class="quarter-heading">{group.quarter}</h3>
       <table>
         <colgroup>
-          <col style="width: 28%" />
-          <col style="width: 20%" />
+          <col style="width: 25%" />
           <col style="width: 18%" />
+          <col style="width: 11%" />
           <col style="width: 16%" />
-          <col style="width: 18%" />
+          <col style="width: 14%" />
+          <col style="width: 16%" />
         </colgroup>
         <thead>
           <tr>
             <th>Country</th>
             <th>Status</th>
+            <th>Open For</th>
             <th>Plan Type</th>
             <th>Office Type</th>
             <th>Regional Office</th>
@@ -40,6 +55,9 @@ const { groups } = Astro.props;
                 <span class={`badge ${statusClass(row.work_order_status)}`}>
                   {statusLabel(row.work_order_status)}
                 </span>
+              </td>
+              <td>
+                {row.work_order_status === "published" ? "—" : (ageLabel(row.created_date) ?? "—")}
               </td>
               <td>{row.plan_type || "—"}</td>
               <td>{row.office_type || "—"}</td>
