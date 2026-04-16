@@ -60,7 +60,7 @@ export interface PlanCountry {
 }
 
 export interface PlanGroup {
-  key: "current_priority" | "current_other" | "prior_only" | "arcgis_only";
+  key: "current_priority" | "current_other" | "prior_only" | "arcgis_only" | "m49_only";
   label: string;
   countries: PlanCountry[];
 }
@@ -341,6 +341,14 @@ export function loadData() {
     })
     .sort((a, b) => a.name_en.localeCompare(b.name_en));
 
+  const m49Only: PlanCountry[] = Object.entries(m49ByIso3)
+    .filter(([iso3]) => !allPlanIso3.has(iso3) && !arcgisIso3.has(iso3) && iso3 !== "")
+    .map(([iso3, geo]) => {
+      const office = officeByIso3[iso3] ?? {};
+      return { iso3, name_en: geo.name_en ?? iso3, regional: office.regional ?? "", office_type: officeTypeByIso3[iso3] ?? "", plan_types: [], inArcgis: false };
+    })
+    .sort((a, b) => a.name_en.localeCompare(b.name_en));
+
   const sort = (arr: PlanCountry[]) => arr.sort((a, b) => a.name_en.localeCompare(b.name_en));
   const planGroups: PlanGroup[] = [
     { key: "current_priority", label: `${latestPlanYear} — HNRP / FA`, countries: sort(currentPriority) },
@@ -354,6 +362,7 @@ export function loadData() {
       }),
     },
     { key: "arcgis_only", label: "No Plans — ArcGIS Catalog", countries: arcgisOnly },
+    { key: "m49_only", label: "No Plans — Rest of M49", countries: m49Only },
   ];
 
   return {
