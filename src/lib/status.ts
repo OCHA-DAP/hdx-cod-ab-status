@@ -1,16 +1,18 @@
 export function statusClass(status: string): string {
   if (status === "published") return "s-published";
-  if (status === "in_progress") return "s-progress";
-  if (status === "awaiting_dataset") return "s-awaiting";
-  if (status === "on_hold") return "s-hold";
+  if (status === "processing") return "s-progress";
+  if (status === "feedback") return "s-awaiting";
+  if (status === "initialized") return "s-initialized";
+  if (status === "blocked") return "s-hold";
   return "s-none";
 }
 
 export const STATUS_LABELS: Record<string, string> = {
   published: "Published",
-  in_progress: "In Progress",
-  awaiting_dataset: "Awaiting Dataset",
-  on_hold: "On Hold",
+  processing: "Processing",
+  feedback: "Feedback",
+  initialized: "Initialized",
+  blocked: "Blocked",
 };
 
 export function statusLabel(status: string): string {

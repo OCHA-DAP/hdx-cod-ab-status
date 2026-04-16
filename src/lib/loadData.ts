@@ -85,19 +85,21 @@ function parseCsv(text: string): Record<string, string>[] {
 
 const STATUS_LABELS: Record<string, string> = {
   published: "Published",
-  in_progress: "In Progress",
-  awaiting_dataset: "Awaiting Dataset",
-  on_hold: "On Hold",
+  processing: "Processing",
+  feedback: "Feedback",
+  initialized: "Initialized",
+  blocked: "Blocked",
 };
 
-const STATUS_ORDER = ["published", "in_progress", "awaiting_dataset", "on_hold"];
+const STATUS_ORDER = ["initialized", "processing", "feedback", "published", "blocked"];
 
 function woStatusRank(s: string): number {
-  if (s === "published") return 0;
-  if (s === "in_progress") return 1;
-  if (s === "awaiting_dataset") return 2;
-  if (s === "on_hold") return 3;
-  return 4;
+  if (s === "initialized") return 0;
+  if (s === "processing") return 1;
+  if (s === "feedback") return 2;
+  if (s === "published") return 3;
+  if (s === "blocked") return 4;
+  return 5;
 }
 
 function groupByQuarter(rows: WorkOrderRow[]): ScheduleGroup[] {
@@ -257,7 +259,11 @@ export function loadData() {
   // Backlog: work orders from any year before the latest
   const backlog = allRows
     .filter((r) => r.year !== latestYear)
-    .sort((a, b) => (a.planned_quarter || "ZZZZ").localeCompare(b.planned_quarter || "ZZZZ"));
+    .sort(
+      (a, b) =>
+        (a.planned_quarter || "ZZZZ").localeCompare(b.planned_quarter || "ZZZZ") ||
+        woStatusRank(a.work_order_status) - woStatusRank(b.work_order_status),
+    );
   const backlogByQuarter = groupByQuarter(backlog);
 
   // Current cycle: all work orders from the latest year

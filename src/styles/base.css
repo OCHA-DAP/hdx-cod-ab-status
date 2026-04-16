@@ -145,6 +145,10 @@ tr.row-gap:hover td {
   background: #fce4d6;
   color: #8b3a0e;
 }
+.badge.s-initialized {
+  background: #e0f2fe;
+  color: #075985;
+}
 .badge.s-hold {
   background: #ffc7ce;
   color: #8b0c1a;
