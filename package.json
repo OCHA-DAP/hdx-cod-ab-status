@@ -7,6 +7,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "fetch": "npm run fetch:m49 && npm run fetch:arcgis && npm run fetch:plans && npm run fetch:regions && npm run fetch:offices",
+    "fetch:local": "npm run fetch:m49 && node --env-file=.env scripts/arcgis.mjs && npm run fetch:plans && npm run fetch:regions && npm run fetch:offices",
     "fetch:m49": "node scripts/m49.mjs",
     "fetch:arcgis": "node scripts/arcgis.mjs",
     "fetch:plans": "node scripts/plans.mjs",
