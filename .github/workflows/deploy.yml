@@ -19,6 +19,10 @@ jobs:
       - run: npm ci
       - uses: actions/configure-pages@v6
         id: pages
+      - run: npm run fetch
+        env:
+          ARCGIS_USERNAME: ${{ secrets.ARCGIS_USERNAME }}
+          ARCGIS_PASSWORD: ${{ secrets.ARCGIS_PASSWORD }}
       - run: npm run build
         env:
           BASE_PATH: ${{ steps.pages.outputs.base_path }}

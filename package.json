@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "build": "npm run fetch && astro build",
+    "build": "astro build",
     "fetch": "npm run fetch:m49 && npm run fetch:arcgis && npm run fetch:plans && npm run fetch:regions && npm run fetch:offices",
     "fetch:m49": "node scripts/m49.mjs",
     "fetch:arcgis": "node scripts/arcgis.mjs",
