@@ -1,31 +1,71 @@
 ---
-import type { ScheduleGroup } from "../lib/loadData.ts";
+import type { ReviewGapRow, ScheduleGroup } from "../lib/loadData.ts";
 import WorkOrderTable from "./WorkOrderTable.astro";
 
 interface Props {
   year: string;
   backlogCount: number;
   groups: ScheduleGroup[];
+  gapRows: ReviewGapRow[];
 }
 
-const { year, backlogCount, groups } = Astro.props;
+const { year, backlogCount, groups, gapRows } = Astro.props;
 ---
 
 <section>
   <h2>
     {year} Backlog
-    <span class={`count-chip ${backlogCount === 0 ? "done" : "warn"}`}>
-      {backlogCount === 0 ? "All published" : `${backlogCount} remaining`}
+    <span class={`count-chip ${backlogCount === 0 && gapRows.length === 0 ? "done" : "warn"}`}>
+      {
+        backlogCount === 0 && gapRows.length === 0
+          ? "All published"
+          : `${backlogCount + gapRows.length} remaining`
+      }
     </span>
   </h2>
   <p class="section-desc">
-    Work orders from the {year} cycle that have not yet been published.
+    Incomplete items from the {year} cycle — work orders still in progress and countries expecting changes
+    with no work order yet.
   </p>
+  {backlogCount > 0 && <WorkOrderTable groups={groups} />}
   {
-    backlogCount === 0 ? (
+    gapRows.length > 0 && (
+      <Fragment>
+        <h3 class="quarter-heading">No Work Order</h3>
+        <table>
+          <colgroup>
+            <col style="width: 30%" />
+            <col style="width: 22%" />
+            <col style="width: 18%" />
+            <col style="width: 30%" />
+          </colgroup>
+          <thead>
+            <tr>
+              <th>Country</th>
+              <th>Plan Type</th>
+              <th>Office Type</th>
+              <th>Regional Office</th>
+            </tr>
+          </thead>
+          <tbody>
+            {gapRows.map((row) => (
+              <tr>
+                <td>
+                  {row.name_en} <span class="iso3">{row.iso3}</span>
+                </td>
+                <td>{row.plan_type || "—"}</td>
+                <td>{row.office_type || "—"}</td>
+                <td>{row.regional || "—"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </Fragment>
+    )
+  }
+  {
+    backlogCount === 0 && gapRows.length === 0 && (
       <p class="empty">All {year} work orders have been published.</p>
-    ) : (
-      <WorkOrderTable groups={groups} />
     )
   }
 </section>

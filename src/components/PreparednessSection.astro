@@ -38,9 +38,7 @@ const { planGroups } = Astro.props;
                 {group.key === "prior_only" && <td>{row.year_range ?? "—"}</td>}
                 <td>{row.office_type || "—"}</td>
                 <td>{row.regional || "—"}</td>
-                <td class={row.inGis ? "flag-yes" : "flag-no"}>
-                  {row.inGis ? "Yes" : "No"}
-                </td>
+                <td class={row.inGis ? "flag-yes" : "flag-no"}>{row.inGis ? "Yes" : "No"}</td>
               </tr>
             ))}
           </tbody>

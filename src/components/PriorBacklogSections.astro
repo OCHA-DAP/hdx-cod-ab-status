@@ -1,14 +1,15 @@
 ---
-import type { YearStat, WorkOrderRow, ScheduleGroup } from "../lib/loadData.ts";
+import type { YearStat, WorkOrderRow, ScheduleGroup, ReviewGapRow } from "../lib/loadData.ts";
 import BacklogSection from "./BacklogSection.astro";
 
 interface Props {
   priorYears: YearStat[];
   backlog: WorkOrderRow[];
   backlogByQuarter: ScheduleGroup[];
+  reviewGapsByYear: Record<string, ReviewGapRow[]>;
 }
 
-const { priorYears, backlog, backlogByQuarter } = Astro.props;
+const { priorYears, backlog, backlogByQuarter, reviewGapsByYear } = Astro.props;
 ---
 
 {
@@ -17,6 +18,14 @@ const { priorYears, backlog, backlogByQuarter } = Astro.props;
     const yearGroups = backlogByQuarter
       .filter((g) => g.rows.some((r) => r.year === ys.year))
       .map((g) => ({ quarter: g.quarter, rows: g.rows.filter((r) => r.year === ys.year) }));
-    return <BacklogSection year={ys.year} backlogCount={yearBacklog.length} groups={yearGroups} />;
+    const gapRows = reviewGapsByYear[ys.year] ?? [];
+    return (
+      <BacklogSection
+        year={ys.year}
+        backlogCount={yearBacklog.length}
+        groups={yearGroups}
+        gapRows={gapRows}
+      />
+    );
   })
 }

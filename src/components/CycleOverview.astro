@@ -97,9 +97,17 @@ const { yearStats, latestYear } = Astro.props;
     background: #ffc7ce;
     border-color: #f09098;
   }
-  .stat-card.s-total {
+  .cycle-total {
+    font-size: 0.75rem;
+    color: #666;
     background: #e8edf5;
-    border-color: #c0cade;
+    border: 1px solid #c0cade;
+    border-radius: 999px;
+    padding: 0.15rem 0.6rem;
+  }
+  .stat-card.s-gap {
+    background: #f3e8ff;
+    border-color: #c084fc;
   }
 </style>
 
@@ -112,6 +120,7 @@ const { yearStats, latestYear } = Astro.props;
           <div class="cycle-header">
             <span class="cycle-year">{ys.year}</span>
             <span class="cycle-tag">{isCurrent ? "Current cycle" : "Backlog"}</span>
+            <span class="cycle-total">{ys.total} total</span>
           </div>
           <div class="stat-grid">
             {ys.pipeline.map((item) => (
@@ -120,10 +129,12 @@ const { yearStats, latestYear } = Astro.props;
                 <span class="stat-lbl">{item.label}</span>
               </div>
             ))}
-            <div class="stat-card s-total">
-              <span class="stat-num">{ys.total}</span>
-              <span class="stat-lbl">Total</span>
-            </div>
+            {ys.gapCount > 0 && (
+              <div class="stat-card s-gap">
+                <span class="stat-num">{ys.gapCount}</span>
+                <span class="stat-lbl">No Work Order</span>
+              </div>
+            )}
           </div>
         </div>
       );

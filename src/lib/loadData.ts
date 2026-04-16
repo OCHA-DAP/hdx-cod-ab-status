@@ -13,6 +13,7 @@ export interface YearStat {
   year: string;
   pipeline: PipelineCount[];
   total: number;
+  gapCount: number;
 }
 
 export interface WorkOrderRow {
@@ -64,6 +65,15 @@ export interface PlanGroup {
   key: "current_priority" | "current_other" | "prior_only" | "gis_only" | "m49_only";
   label: string;
   countries: PlanCountry[];
+}
+
+export interface ReviewGapRow {
+  iso3: string;
+  name_en: string;
+  year: string;
+  plan_type: string;
+  office_type: string;
+  regional: string;
 }
 
 function parseCsv(text: string): Record<string, string>[] {
@@ -196,6 +206,31 @@ export function loadData() {
 
   const allRows = workOrders.map(buildRow);
 
+  const coveredByWorkOrder = new Set(workOrders.map((wo) => `${wo.iso3}:${wo.year}`));
+  const reviewGaps: ReviewGapRow[] = reviews
+    .filter((r) => r.change_expected === "TRUE" && !coveredByWorkOrder.has(`${r.iso3}:${r.year}`))
+    .map((r) => {
+      const geo = m49ByIso3[r.iso3] ?? {};
+      const office = officeByIso3[r.iso3] ?? {};
+      const plan = plansByYear[r.year]?.[r.iso3];
+      return {
+        iso3: r.iso3,
+        name_en: geo.name_en ?? r.iso3,
+        year: r.year,
+        plan_type: plan ? plan.types.map((t) => t.toUpperCase()).join(" / ") : "",
+        office_type: officeTypeByIso3[r.iso3] ?? "",
+        regional: office.regional ?? "",
+      };
+    })
+    .sort((a, b) => a.name_en.localeCompare(b.name_en));
+
+  // Review gaps grouped by year for per-section access
+  const reviewGapsByYear: Record<string, ReviewGapRow[]> = {};
+  for (const r of reviewGaps) {
+    if (!reviewGapsByYear[r.year]) reviewGapsByYear[r.year] = [];
+    reviewGapsByYear[r.year].push(r);
+  }
+
   // Determine cycle years (sorted ascending)
   const years = [...new Set(allRows.map((r) => r.year))].sort();
   const latestYear = years[years.length - 1];
@@ -211,7 +246,12 @@ export function loadData() {
       label: STATUS_LABELS[s],
       count: countMap[s],
     }));
-    return { year, pipeline, total: yearRows.length };
+    return {
+      year,
+      pipeline,
+      total: yearRows.length,
+      gapCount: (reviewGapsByYear[year] ?? []).length,
+    };
   });
 
   // Backlog: work orders from any year before the latest
@@ -303,9 +343,7 @@ export function loadData() {
       }
     } else {
       // Has plan in a prior year — use the most recent prior year's types
-      const priorYears = [...byYear.keys()]
-        .filter((y) => y !== latestPlanYear)
-        .sort();
+      const priorYears = [...byYear.keys()].filter((y) => y !== latestPlanYear).sort();
       const priorTypes = [...(byYear.get(priorYears.at(-1)!) ?? [])];
       const minYear = priorYears[0];
       const maxYear = priorYears.at(-1)!;
@@ -328,7 +366,14 @@ export function loadData() {
     .map((iso3) => {
       const geo = m49ByIso3[iso3] ?? {};
       const office = officeByIso3[iso3] ?? {};
-      return { iso3, name_en: geo.name_en ?? iso3, regional: office.regional ?? "", office_type: officeTypeByIso3[iso3] ?? "", plan_types: [], inGis: true };
+      return {
+        iso3,
+        name_en: geo.name_en ?? iso3,
+        regional: office.regional ?? "",
+        office_type: officeTypeByIso3[iso3] ?? "",
+        plan_types: [],
+        inGis: true,
+      };
     })
     .sort((a, b) => a.name_en.localeCompare(b.name_en));
 
@@ -336,14 +381,29 @@ export function loadData() {
     .filter(([iso3]) => !allPlanIso3.has(iso3) && !gisIso3.has(iso3) && iso3 !== "")
     .map(([iso3, geo]) => {
       const office = officeByIso3[iso3] ?? {};
-      return { iso3, name_en: geo.name_en ?? iso3, regional: office.regional ?? "", office_type: officeTypeByIso3[iso3] ?? "", plan_types: [], inGis: false };
+      return {
+        iso3,
+        name_en: geo.name_en ?? iso3,
+        regional: office.regional ?? "",
+        office_type: officeTypeByIso3[iso3] ?? "",
+        plan_types: [],
+        inGis: false,
+      };
     })
     .sort((a, b) => a.name_en.localeCompare(b.name_en));
 
   const sort = (arr: PlanCountry[]) => arr.sort((a, b) => a.name_en.localeCompare(b.name_en));
   const planGroups: PlanGroup[] = [
-    { key: "current_priority", label: `${latestPlanYear} — HNRP / FA`, countries: sort(currentPriority) },
-    { key: "current_other", label: `${latestPlanYear} — Other Plans`, countries: sort(currentOther) },
+    {
+      key: "current_priority",
+      label: `${latestPlanYear} — HNRP / FA`,
+      countries: sort(currentPriority),
+    },
+    {
+      key: "current_other",
+      label: `${latestPlanYear} — Other Plans`,
+      countries: sort(currentOther),
+    },
     {
       key: "prior_only",
       label: "Prior Year Plans",
@@ -365,6 +425,8 @@ export function loadData() {
     currentByQuarter,
     planCoverageByYear,
     planGroups,
+    reviewGaps,
+    reviewGapsByYear,
     total: allRows.length,
     syncedAt,
   };
