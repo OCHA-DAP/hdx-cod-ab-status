@@ -9,42 +9,7 @@ interface Props {
 }
 
 const { latestYear, currentCycleWork, currentByQuarter } = Astro.props;
-
-const published = currentCycleWork.filter((r) => r.work_order_status === "published");
 ---
-
-<style>
-  /* ── Published toggle ────────────────────────────────────────── */
-  .published-toggle {
-    margin-top: 1rem;
-    border: 1px solid #e2e5ea;
-    border-radius: 5px;
-    overflow: hidden;
-  }
-
-  .published-toggle summary {
-    padding: 0.5rem 0.75rem;
-    font-size: 0.82rem;
-    font-weight: 600;
-    cursor: pointer;
-    background: #f0f2f5;
-    color: #444;
-    user-select: none;
-  }
-
-  .published-toggle summary:hover {
-    background: #e6e9ef;
-  }
-
-  .published-toggle table {
-    border: none;
-    margin: 0;
-  }
-
-  .published-toggle th {
-    top: auto;
-  }
-</style>
 
 <section>
   <h2>
@@ -60,38 +25,6 @@ const published = currentCycleWork.filter((r) => r.work_order_status === "publis
       <p class="empty">No active work orders in the {latestYear} cycle yet.</p>
     ) : (
       <WorkOrderTable groups={currentByQuarter} />
-    )
-  }
-
-  {
-    published.length > 0 && (
-      <details class="published-toggle">
-        <summary>Published ({published.length})</summary>
-        <table>
-          <thead>
-            <tr>
-              <th>Country</th>
-              <th>Work Order ID</th>
-              <th>Plan Type</th>
-              <th>Completed Quarter</th>
-              <th>Regional Office</th>
-            </tr>
-          </thead>
-          <tbody>
-            {published.map((row) => (
-              <tr>
-                <td>
-                  {row.name_en} <span class="iso3">{row.iso3}</span>
-                </td>
-                <td class="mono">{row.work_order_id}</td>
-                <td>{row.plan_type || "—"}</td>
-                <td>{row.planned_quarter || "—"}</td>
-                <td>{row.regional || "—"}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </details>
     )
   }
 </section>

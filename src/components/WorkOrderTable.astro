@@ -14,12 +14,19 @@ const { groups } = Astro.props;
     <Fragment>
       <h3 class="quarter-heading">{group.quarter}</h3>
       <table>
+        <colgroup>
+          <col style="width: 28%" />
+          <col style="width: 20%" />
+          <col style="width: 18%" />
+          <col style="width: 16%" />
+          <col style="width: 18%" />
+        </colgroup>
         <thead>
           <tr>
             <th>Country</th>
             <th>Status</th>
             <th>Plan Type</th>
-            <th>Change Expected</th>
+            <th>Office Type</th>
             <th>Regional Office</th>
           </tr>
         </thead>
@@ -35,9 +42,7 @@ const { groups } = Astro.props;
                 </span>
               </td>
               <td>{row.plan_type || "—"}</td>
-              <td class={row.change_expected ? "flag-yes" : ""}>
-                {row.change_expected ? "Yes" : "No"}
-              </td>
+              <td>{row.office_type || "—"}</td>
               <td>{row.regional || "—"}</td>
             </tr>
           ))}

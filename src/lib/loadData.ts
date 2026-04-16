@@ -23,6 +23,7 @@ export interface WorkOrderRow {
   work_order_status: string;
   plan_type: string;
   change_expected: boolean;
+  office_type: string;
   planned_quarter: string;
   created_date: string;
   regional: string;
@@ -186,6 +187,7 @@ export function loadData() {
       work_order_status: wo.status ?? "",
       plan_type: plan ? plan.types.map((t) => t.toUpperCase()).join(" / ") : "",
       change_expected: review.change_expected === "TRUE",
+      office_type: officeTypeByIso3[wo.iso3] ?? "",
       planned_quarter: wo.planned_quarter ?? "",
       created_date: wo.creation_date ?? "",
       regional: office.regional ?? "",
@@ -212,9 +214,9 @@ export function loadData() {
     return { year, pipeline, total: yearRows.length };
   });
 
-  // Backlog: non-published work orders from any year before the latest
+  // Backlog: work orders from any year before the latest
   const backlog = allRows
-    .filter((r) => r.year !== latestYear && r.work_order_status !== "published")
+    .filter((r) => r.year !== latestYear)
     .sort((a, b) => (a.planned_quarter || "ZZZZ").localeCompare(b.planned_quarter || "ZZZZ"));
   const backlogByQuarter = groupByQuarter(backlog);
 
@@ -222,9 +224,7 @@ export function loadData() {
   const currentCycleWork = allRows
     .filter((r) => r.year === latestYear)
     .sort((a, b) => woStatusRank(a.work_order_status) - woStatusRank(b.work_order_status));
-  const currentByQuarter = groupByQuarter(
-    currentCycleWork.filter((r) => r.work_order_status !== "published"),
-  );
+  const currentByQuarter = groupByQuarter(currentCycleWork);
 
   // Plan coverage per year (newest first)
   const planCoverageByYear: PlanCoverageYear[] = Object.entries(plansByYear)
