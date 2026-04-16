@@ -54,13 +54,11 @@ def fetch_hdx_hubs():
     all_hubs: dict[str, set[str]] = {}
 
     for hub, org_name in HUBS.items():
-        print(f"  HDX hubs: querying {org_name} ({hub})...")
         try:
             countries = fetch_hdx_org_countries(org_name)
         except Exception as err:
             print(f"  HDX: failed for {org_name}: {err}", file=sys.stderr)
             continue
-        print(f"    {len(countries)} countries")
         for iso3 in countries:
             all_hubs.setdefault(iso3, set()).add(hub)
 
@@ -81,9 +79,9 @@ def fetch_hdx_hubs():
                     counts[hub] = data.get("result", {}).get("count", 0)
                 except Exception:
                     counts[hub] = 0
-            sorted_counts = sorted(counts.items(), key=lambda x: x[1], reverse=True)
-            winner_hub, winner_count = sorted_counts[0]
-            _, loser_count = sorted_counts[1]
+            winner_hub = max(counts, key=counts.__getitem__)
+            winner_count = counts[winner_hub]
+            loser_count = max(v for h, v in counts.items() if h != winner_hub)
             if loser_count == 0 or winner_count / loser_count >= CONFLICT_RATIO_THRESHOLD:
                 mapping[iso3] = winner_hub
                 conflict_resolutions[iso3] = {"hub": winner_hub, "counts": counts}
@@ -94,29 +92,24 @@ def fetch_hdx_hubs():
 
 
 def print_analysis(all_hubs, conflict_resolutions):
-    print("\n=== HDX CKAN (hub → country datasets) ===")
     for hub in HUBS:
-        countries = sorted(iso3 for iso3, hubs in all_hubs.items() if hub in hubs)
-        print(f"  {hub}: {' '.join(countries)} ({len(countries)})")
+        count = sum(1 for hubs in all_hubs.values() if hub in hubs)
+        print(f"  {hub}: {count} countries")
 
     if conflict_resolutions:
-        print("\n  Conflict resolution (country claimed by multiple hubs):")
+        print("\n  Conflicts (country claimed by multiple hubs):")
         for iso3, resolution in conflict_resolutions.items():
             hubs = all_hubs.get(iso3, set())
             if resolution:
-                counts_str = ", ".join(
-                    f"{h}:{n}" for h, n in resolution["counts"].items()
-                )
-                print(
-                    f"    {iso3}: {' + '.join(hubs)} → assigned to {resolution['hub']} ({counts_str})"
-                )
+                counts_str = ", ".join(f"{h}:{n}" for h, n in resolution["counts"].items())
+                print(f"    {iso3}: {' + '.join(hubs)} → {resolution['hub']} ({counts_str})")
             else:
                 print(
-                    f"    {iso3}: {' + '.join(hubs)} → unresolved (too close), excluded from output"
+                    f"    {iso3}: {' + '.join(hubs)} → unresolved, excluded",
+                    file=sys.stderr,
                 )
 
 
-print("Fetching HDX CKAN hub data...")
 hub_mapping, all_hubs, conflict_resolutions = fetch_hdx_hubs()
 
 print_analysis(all_hubs, conflict_resolutions)

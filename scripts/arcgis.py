@@ -76,29 +76,23 @@ COD_AB_RE = re.compile(r"^(?:Hosted/)?cod_ab_([a-z]{3})(?:[_-].*)?$", re.IGNOREC
 
 
 def extract_countries(services: list[dict]) -> list[str]:
-    iso3_set: set[str] = set()
-    for svc in services:
-        match = COD_AB_RE.match(svc.get("name", ""))
-        if match:
-            iso3_set.add(match.group(1).upper())
-    return sorted(iso3_set)
+    return sorted({
+        m.group(1).upper()
+        for svc in services
+        if (m := COD_AB_RE.match(svc.get("name", "")))
+    })
 
 
-print("Authenticating...")
 token = get_token()
-print("Fetching service list...")
 services = fetch_services(token)
 print(f"{len(services)} services found in Hosted folder")
 
 countries = extract_countries(services)
-print(f"\n{len(countries)} COD-AB countries:\n")
-for iso3 in countries:
-    print(iso3)
+print(f"{len(countries)} COD-AB countries found")
 
 with open(OUTPUT, "w", newline="", encoding="utf-8") as f:
     writer = csv.writer(f)
     writer.writerow(["iso3"])
-    for iso3 in countries:
-        writer.writerow([iso3])
+    writer.writerows([iso3] for iso3 in countries)
 
 print(f"\nWritten to {OUTPUT}")

@@ -23,6 +23,7 @@ Dashboard: https://app.powerbi.com/view?r=eyJrIjoiZTNmYjk4ZDUtZDFlYi00MzllLTk5YT
 
 import csv
 import sys
+from collections import Counter
 from pathlib import Path
 
 import requests
@@ -97,8 +98,9 @@ def build_m49_lookup() -> dict[str, str]:
     header = next(reader)
     name_idx = header.index("country_or_area")
     iso3_idx = header.index("iso_alpha3_code")
+    min_cols = max(name_idx, iso3_idx)
     for row in reader:
-        if len(row) > max(name_idx, iso3_idx):
+        if len(row) > min_cols:
             name = row[name_idx].lower().strip()
             iso3 = row[iso3_idx].strip()
             if name and iso3:
@@ -257,12 +259,10 @@ def query_table(table: str, columns: list[str]) -> list[list]:
 # Verify COs against the PDF list.
 # ---------------------------------------------------------------------------
 def verify_against_pdf(co_iso3: set[str]) -> None:
-    matched = sorted(iso3 for iso3 in PDF_CO_ISO3 if iso3 in co_iso3)
     pdf_only = sorted(iso3 for iso3 in PDF_CO_ISO3 if iso3 not in co_iso3)
     pbi_only = sorted(iso3 for iso3 in co_iso3 if iso3 not in PDF_CO_ISO3)
 
     print("\n=== Verification vs Jan 2026 PDF org chart ===")
-    print(f"  Match    ({len(matched)}/{len(PDF_CO_ISO3)}): {' '.join(matched) or '(none)'}")
     if pdf_only:
         print(f"  PDF only ({len(pdf_only)}): {' '.join(pdf_only)}  ← missing from PowerBI",
               file=sys.stderr)
@@ -276,60 +276,46 @@ def verify_against_pdf(co_iso3: set[str]) -> None:
 # Main
 # ---------------------------------------------------------------------------
 m49 = build_m49_lookup()
-print(f"M49 lookup: {len(m49)} entries")
 
 result_map: dict[str, str] = {}  # iso3 → type
 unmatched: list[dict] = []
 
 # ── 1. Country Offices ────────────────────────────────────────────────────
-print('\n[1] Querying "CO HOO CONTACT LIST" for country offices...')
 co_rows = query_table("CO HOO CONTACT LIST", ["COUNTRY", "OFFICE TYPE"])
 
 for row in co_rows:
-    country, office_type = row[0], row[1]
+    country = row[0]
     if not country:
         continue
-    lower = country.lower().strip()
-    if lower in SKIP_NAMES:
-        print(f"  Skipping: {country}")
+    if country.lower().strip() in SKIP_NAMES:
         continue
-    # Dashboard only has "Country Office" in this table, but normalise anyway
-    office_t = "CO"
 
     iso3 = resolve_iso3(country, m49)
     if not iso3:
-        unmatched.append({"name": country, "type": office_t})
-        print(f"  Unmatched: {country}", file=sys.stderr)
+        unmatched.append({"name": country, "type": "CO"})
         continue
-    result_map[iso3] = office_t
-    print(f"  {country} → {iso3} [{office_t}]")
+    result_map[iso3] = "CO"
 
 # ── 2. Humanitarian Advisory Teams ────────────────────────────────────────
-print('\n[2] Querying "RO_HAT HOO CONTACT LIST" for HATs...')
 hat_rows = query_table("RO_HAT HOO CONTACT LIST", ["COUNTRY", "OFFICE TYPE"])
 
 for row in hat_rows:
     country, office_type = row[0], row[1]
     if not country or not office_type:
         continue
-    lower = country.lower().strip()
-    if lower in SKIP_NAMES:
-        print(f"  Skipping: {country}")
+    if country.lower().strip() in SKIP_NAMES:
         continue
     # Only include Humanitarian Advisor Teams; skip Regional Offices and Liaison Offices
     if "humanitarian" not in office_type.lower():
-        print(f"  Skipping ({office_type}): {country}")
         continue
 
     iso3 = resolve_iso3(country, m49)
     if not iso3:
         unmatched.append({"name": country, "type": "HAT"})
-        print(f"  Unmatched: {country}", file=sys.stderr)
         continue
     # Don't overwrite a CO with HAT
     if iso3 not in result_map:
         result_map[iso3] = "HAT"
-        print(f"  {country} → {iso3} [HAT]")
 
 # ── 3. Write CSV ──────────────────────────────────────────────────────────
 sorted_entries = sorted(result_map.items())
@@ -338,11 +324,10 @@ with open(OUTPUT_CSV, "w", newline="", encoding="utf-8") as f:
     writer.writerow(["iso3", "type"])
     writer.writerows(sorted_entries)
 
-co_count = sum(1 for _, t in sorted_entries if t == "CO")
-hat_count = sum(1 for _, t in sorted_entries if t == "HAT")
+type_counts = Counter(t for _, t in sorted_entries)
 print(f"\nWrote {len(sorted_entries)} rows → {OUTPUT_CSV}")
-print(f"  CO:  {co_count}")
-print(f"  HAT: {hat_count}")
+print(f"  CO:  {type_counts['CO']}")
+print(f"  HAT: {type_counts['HAT']}")
 
 if unmatched:
     names = "\n".join(f'  "{u["name"]}" [{u["type"]}]' for u in unmatched)
