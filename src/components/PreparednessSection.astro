@@ -1,80 +1,60 @@
 ---
-import type { PreparednessCountry } from "../lib/loadData.ts";
+import type { PlanGroup } from "../lib/loadData.ts";
 
 interface Props {
-  preparednessCountries: PreparednessCountry[];
-  noPlanCountries: PreparednessCountry[];
+  planGroups: PlanGroup[];
 }
 
-const { preparednessCountries, noPlanCountries } = Astro.props;
+const { planGroups } = Astro.props;
 ---
 
-<section>
-  <h2>
-    Preparedness Countries
-    <span class="count-chip">{preparednessCountries.length}</span>
-  </h2>
-  <p class="section-desc">
-    Countries in preparedness scope — not currently covered by an HRP or Flash Appeal plan.
-  </p>
+{
+  planGroups.map((group) => (
+    <section>
+      <h2>
+        {group.label}
+        <span class="count-chip">{group.countries.length}</span>
+      </h2>
 
-  {
-    preparednessCountries.length > 0 ? (
-      <table>
-        <thead>
-          <tr>
-            <th>Country</th>
-            <th>Regional Office</th>
-          </tr>
-        </thead>
-        <tbody>
-          {preparednessCountries.map((row) => (
+      {group.countries.length > 0 ? (
+        <table>
+          <thead>
             <tr>
-              <td>
-                {row.name_en} <span class="iso3">{row.iso3}</span>
-              </td>
-              <td>{row.regional || "—"}</td>
+              <th>Country</th>
+              <th>Plan Types</th>
+              {group.key === "prior_only" && <th>Years</th>}
+              <th>Office Type</th>
+              <th>Regional Office</th>
+              <th>In ArcGIS</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    ) : (
-      <p class="empty">No preparedness countries found.</p>
-    )
-  }
-</section>
+          </thead>
+          <tbody>
+            {group.countries.map((row) => (
+              <tr class={row.inArcgis ? "" : "row-gap"}>
+                <td>
+                  {row.name_en} <span class="iso3">{row.iso3}</span>
+                </td>
+                <td>{row.plan_types.join(" / ") || "—"}</td>
+                {group.key === "prior_only" && <td>{row.year_range ?? "—"}</td>}
+                <td>{row.office_type || "—"}</td>
+                <td>{row.regional || "—"}</td>
+                <td class={row.inArcgis ? "flag-yes" : "flag-no"}>
+                  {row.inArcgis ? "Yes" : "No"}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <p class="empty">No countries found.</p>
+      )}
+    </section>
+  ))
+}
 
-<section>
-  <h2>
-    No Plan / Not in Preparedness Scope
-    <span class="count-chip">{noPlanCountries.length}</span>
-  </h2>
-  <p class="section-desc">
-    Countries with no active HRP, Flash Appeal, or preparedness plan.
-  </p>
-
-  {
-    noPlanCountries.length > 0 ? (
-      <table>
-        <thead>
-          <tr>
-            <th>Country</th>
-            <th>Regional Office</th>
-          </tr>
-        </thead>
-        <tbody>
-          {noPlanCountries.map((row) => (
-            <tr>
-              <td>
-                {row.name_en} <span class="iso3">{row.iso3}</span>
-              </td>
-              <td>{row.regional || "—"}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    ) : (
-      <p class="empty">No countries found.</p>
-    )
+<style>
+  .flag-no {
+    color: #b45309;
+    font-weight: 600;
   }
-</section>
+</style>

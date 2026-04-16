@@ -32,7 +32,6 @@ const { planCoverageByYear } = Astro.props;
           <tr>
             <th>Country</th>
             <th>Plan Type</th>
-            <th>Admin Level</th>
             <th>Change Expected</th>
             <th>Work Order Status</th>
             <th>Planned Quarter</th>
@@ -46,7 +45,6 @@ const { planCoverageByYear } = Astro.props;
                 {row.name_en} <span class="iso3">{row.iso3}</span>
               </td>
               <td>{row.plan_types}</td>
-              <td>{row.admin_level || "—"}</td>
               <td class={row.change_expected ? "flag-yes" : ""}>
                 {row.change_expected ? "Yes" : "No"}
               </td>

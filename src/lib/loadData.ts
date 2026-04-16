@@ -22,7 +22,6 @@ export interface WorkOrderRow {
   work_order_id: string;
   work_order_status: string;
   plan_type: string;
-  admin_level: string;
   change_expected: boolean;
   planned_quarter: string;
   created_date: string;
@@ -38,7 +37,6 @@ export interface PlanCoverageRow {
   iso3: string;
   name_en: string;
   plan_types: string;
-  admin_level: string;
   change_expected: boolean;
   work_order_status: string;
   planned_quarter: string;
@@ -51,10 +49,20 @@ export interface PlanCoverageYear {
   gapCount: number;
 }
 
-export interface PreparednessCountry {
+export interface PlanCountry {
   iso3: string;
   name_en: string;
   regional: string;
+  office_type: string;
+  plan_types: string[];
+  inArcgis: boolean;
+  year_range?: string;
+}
+
+export interface PlanGroup {
+  key: "current_priority" | "current_other" | "prior_only" | "arcgis_only";
+  label: string;
+  countries: PlanCountry[];
 }
 
 function parseCsv(text: string): Record<string, string>[] {
@@ -95,13 +103,16 @@ function groupByQuarter(rows: WorkOrderRow[]): ScheduleGroup[] {
 
 export function loadData() {
   const dataDir = join(process.cwd(), "public/data");
-  const [m49Text, planText, reviewText, workText, officesText] = [
+  const apiDir = join(process.cwd(), "public/api");
+  const [reviewText, workText] = ["reviews.csv", "work.csv"].map((f) =>
+    readFileSync(join(dataDir, f), "utf-8"),
+  );
+  const [m49Text, planText, officesText, officeTypesText] = [
     "m49.csv",
     "plans.csv",
-    "reviews.csv",
-    "work.csv",
+    "regions.csv",
     "offices.csv",
-  ].map((f) => readFileSync(join(dataDir, f), "utf-8"));
+  ].map((f) => readFileSync(join(apiDir, f), "utf-8"));
 
   let syncedAt: string | null = null;
   try {
@@ -115,8 +126,11 @@ export function loadData() {
   const reviews = parseCsv(reviewText);
   const workOrders = parseCsv(workText);
   const offices = parseCsv(officesText);
+  const officeTypes = parseCsv(officeTypesText);
 
-  const m49ByIso3 = Object.fromEntries(m49.map((r) => [r.iso3, r]));
+  const m49ByIso3 = Object.fromEntries(
+    m49.map((r) => [r.iso_alpha3_code, { ...r, name_en: r.country_or_area }]),
+  );
   // Key reviews by "iso3:year" for multi-year support, fall back to iso3 only
   const reviewByKey: Record<string, Record<string, string>> = {};
   for (const r of reviews) {
@@ -124,31 +138,30 @@ export function loadData() {
     reviewByKey[r.iso3] = r; // fallback (last write wins — fine while all same year)
   }
   const officeByIso3 = Object.fromEntries(offices.map((r) => [r.iso3, r]));
+  const officeTypeByIso3 = Object.fromEntries(officeTypes.map((r) => [r.iso3, r.type]));
 
   // Plans grouped by year → iso3 (HRP and FA only, for plan coverage table)
-  const coveragePlanTypes = new Set(["hrp", "fa"]);
-  const plansByYear: Record<string, Record<string, { types: string[]; admin: string }>> = {};
+  const coveragePlanTypes = new Set(["HRP", "HNRP", "FA"]);
+  const plansByYear: Record<string, Record<string, { types: string[] }>> = {};
   for (const p of plans) {
     if (!coveragePlanTypes.has(p.type)) continue;
     if (!plansByYear[p.year]) plansByYear[p.year] = {};
     const byIso3 = plansByYear[p.year];
     if (!byIso3[p.iso3]) {
-      byIso3[p.iso3] = { types: [p.type], admin: p.admin ?? "" };
+      byIso3[p.iso3] = { types: [p.type] };
     } else {
       if (!byIso3[p.iso3].types.includes(p.type)) byIso3[p.iso3].types.push(p.type);
-      if (!byIso3[p.iso3].admin && p.admin) byIso3[p.iso3].admin = p.admin;
     }
   }
 
   // Flat plan lookup by iso3 (all years merged, HRP and FA only) for work order enrichment
-  const planByIso3: Record<string, { types: string[]; admin: string }> = {};
+  const planByIso3: Record<string, { types: string[] }> = {};
   for (const p of plans) {
     if (!coveragePlanTypes.has(p.type)) continue;
     if (!planByIso3[p.iso3]) {
-      planByIso3[p.iso3] = { types: [p.type], admin: p.admin ?? "" };
+      planByIso3[p.iso3] = { types: [p.type] };
     } else {
       if (!planByIso3[p.iso3].types.includes(p.type)) planByIso3[p.iso3].types.push(p.type);
-      if (!planByIso3[p.iso3].admin && p.admin) planByIso3[p.iso3].admin = p.admin;
     }
   }
 
@@ -172,7 +185,6 @@ export function loadData() {
       work_order_id: wo.id ?? "",
       work_order_status: wo.status ?? "",
       plan_type: plan ? plan.types.map((t) => t.toUpperCase()).join(" / ") : "",
-      admin_level: plan?.admin ?? "",
       change_expected: review.change_expected === "TRUE",
       planned_quarter: wo.planned_quarter ?? "",
       created_date: wo.creation_date ?? "",
@@ -237,7 +249,6 @@ export function loadData() {
             iso3,
             name_en: geo.name_en ?? iso3,
             plan_types: plan.types.map((t) => t.toUpperCase()).join(" / "),
-            admin_level: plan.admin ?? "",
             change_expected: review.change_expected === "TRUE",
             work_order_status: wo?.status ?? "",
             planned_quarter: wo?.planned_quarter ?? "",
@@ -258,24 +269,92 @@ export function loadData() {
       };
     });
 
-  function buildCountryList(type: string): PreparednessCountry[] {
-    const seen = new Set<string>();
-    return plans
-      .filter((r) => r.type === type && !seen.has(r.iso3) && seen.add(r.iso3))
-      .map((r) => {
-        const geo = m49ByIso3[r.iso3] ?? {};
-        const office = officeByIso3[r.iso3] ?? {};
-        return {
-          iso3: r.iso3,
-          name_en: geo.name_en ?? r.iso3,
-          regional: office.regional ?? "",
-        };
-      })
-      .sort((a, b) => a.name_en.localeCompare(b.name_en));
+  // Load ArcGIS catalog country list
+  const arcgisText = readFileSync(join(apiDir, "arcgis.csv"), "utf-8");
+  const arcgisIso3 = new Set(parseCsv(arcgisText).map((r) => r.iso3));
+
+  // Build plan groups from the plans data
+  const latestPlanYear = [...new Set(plans.map((p) => p.year))].sort().at(-1) ?? "";
+  const priorityTypes = new Set(["HRP", "HNRP", "FA"]);
+
+  // iso3 → year → unique types[]
+  const plansByIso3 = new Map<string, Map<string, Set<string>>>();
+  for (const p of plans) {
+    if (!plansByIso3.has(p.iso3)) plansByIso3.set(p.iso3, new Map());
+    const byYear = plansByIso3.get(p.iso3)!;
+    if (!byYear.has(p.year)) byYear.set(p.year, new Set());
+    byYear.get(p.year)!.add(p.type);
   }
 
-  const preparednessCountries = buildCountryList("preparedness");
-  const noPlanCountries = buildCountryList("other");
+  const currentPriority: PlanCountry[] = [];
+  const currentOther: PlanCountry[] = [];
+  const priorOnly: PlanCountry[] = [];
+
+  for (const [iso3, byYear] of plansByIso3) {
+    const geo = m49ByIso3[iso3] ?? {};
+    const office = officeByIso3[iso3] ?? {};
+    const currentTypes = [...(byYear.get(latestPlanYear) ?? [])];
+    const hasPriority = currentTypes.some((t) => priorityTypes.has(t));
+
+    if (currentTypes.length > 0) {
+      const country: PlanCountry = {
+        iso3,
+        name_en: geo.name_en ?? iso3,
+        regional: office.regional ?? "",
+        office_type: officeTypeByIso3[iso3] ?? "",
+        plan_types: currentTypes,
+        inArcgis: arcgisIso3.has(iso3),
+      };
+      if (hasPriority) {
+        currentPriority.push(country);
+      } else {
+        currentOther.push(country);
+      }
+    } else {
+      // Has plan in a prior year — use the most recent prior year's types
+      const priorYears = [...byYear.keys()]
+        .filter((y) => y !== latestPlanYear)
+        .sort();
+      const priorTypes = [...(byYear.get(priorYears.at(-1)!) ?? [])];
+      const minYear = priorYears[0];
+      const maxYear = priorYears.at(-1)!;
+      const year_range = minYear === maxYear ? minYear : `${minYear}–${maxYear}`;
+      priorOnly.push({
+        iso3,
+        name_en: geo.name_en ?? iso3,
+        regional: office.regional ?? "",
+        office_type: officeTypeByIso3[iso3] ?? "",
+        plan_types: priorTypes,
+        inArcgis: arcgisIso3.has(iso3),
+        year_range,
+      });
+    }
+  }
+
+  const allPlanIso3 = new Set(plansByIso3.keys());
+  const arcgisOnly: PlanCountry[] = [...arcgisIso3]
+    .filter((iso3) => !allPlanIso3.has(iso3))
+    .map((iso3) => {
+      const geo = m49ByIso3[iso3] ?? {};
+      const office = officeByIso3[iso3] ?? {};
+      return { iso3, name_en: geo.name_en ?? iso3, regional: office.regional ?? "", office_type: officeTypeByIso3[iso3] ?? "", plan_types: [], inArcgis: true };
+    })
+    .sort((a, b) => a.name_en.localeCompare(b.name_en));
+
+  const sort = (arr: PlanCountry[]) => arr.sort((a, b) => a.name_en.localeCompare(b.name_en));
+  const planGroups: PlanGroup[] = [
+    { key: "current_priority", label: `${latestPlanYear} — HNRP / FA`, countries: sort(currentPriority) },
+    { key: "current_other", label: `${latestPlanYear} — Other Plans`, countries: sort(currentOther) },
+    {
+      key: "prior_only",
+      label: "Prior Year Plans",
+      countries: priorOnly.sort((a, b) => {
+        const endYear = (c: PlanCountry) => (c.year_range ?? "").split("–").at(-1) ?? "";
+        return endYear(b).localeCompare(endYear(a)) || a.iso3.localeCompare(b.iso3);
+      }),
+    },
+    { key: "arcgis_only", label: "No Plans — ArcGIS Catalog", countries: arcgisOnly },
+  ];
 
   return {
     yearStats,
@@ -286,8 +365,7 @@ export function loadData() {
     currentByQuarter,
     blocked,
     planCoverageByYear,
-    preparednessCountries,
-    noPlanCountries,
+    planGroups,
     total: allRows.length,
     syncedAt,
   };
