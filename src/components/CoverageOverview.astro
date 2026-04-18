@@ -1,0 +1,114 @@
+---
+import type { PlanGroup } from "../lib/loadData.ts";
+
+interface Props {
+  planGroups: PlanGroup[];
+}
+
+const { planGroups } = Astro.props;
+
+function coverageClass(inGis: number, total: number): string {
+  if (total === 0) return "s-ok";
+  const pct = inGis / total;
+  if (pct === 1) return "s-ok";
+  if (pct >= 0.75) return "s-warn-low";
+  if (pct >= 0.5) return "s-warn-mid";
+  return "s-critical";
+}
+---
+
+<style>
+  .cycle-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .cycle-card {
+    border-radius: 6px;
+    border: 1px solid #e2e5ea;
+    padding: 1rem 1.25rem;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  .cycle-card:hover {
+    border-color: #93c5fd;
+    background: #f8fbff;
+  }
+
+  .cycle-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .stat-card {
+    border-radius: 5px;
+    padding: 0.6rem 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    border: 1px solid transparent;
+  }
+
+  .stat-card.s-ok {
+    background: #c6efce;
+    border-color: #93d09a;
+  }
+
+  .stat-card.s-warn-low {
+    background: #fff2cc;
+    border-color: #f5d262;
+  }
+
+  .stat-card.s-warn-mid {
+    background: #fce4d6;
+    border-color: #f4b183;
+  }
+
+  .stat-card.s-critical {
+    background: #ffc7ce;
+    border-color: #f09098;
+  }
+
+  .stat-num {
+    font-size: 1.6rem;
+    font-weight: 400;
+    line-height: 1;
+  }
+
+  .stat-lbl {
+    font-size: 0.72rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #444;
+  }
+</style>
+
+<div class="cycle-grid">
+  {
+    planGroups.map((group) => {
+      const total = group.countries.length;
+      const inGis = group.countries.filter((c) => c.inGis).length;
+      return (
+        <a class="cycle-card" href={`#${group.key}`}>
+          <div class="cycle-label">{group.label}</div>
+          <div class={`stat-card ${coverageClass(inGis, total)}`}>
+            <span class="stat-num">{inGis} / <strong>{total}</strong></span>
+            <span class="stat-lbl">In GIS</span>
+          </div>
+        </a>
+      );
+    })
+  }
+</div>

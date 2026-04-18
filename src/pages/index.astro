@@ -3,6 +3,7 @@ import CycleOverview from "../components/CycleOverview.astro";
 import PriorBacklogSections from "../components/PriorBacklogSections.astro";
 import CurrentCycleSection from "../components/CurrentCycleSection.astro";
 import PreparednessSection from "../components/PreparednessSection.astro";
+import CoverageOverview from "../components/CoverageOverview.astro";
 import { loadData } from "../lib/loadData.ts";
 import "../styles/base.css";
 
@@ -69,6 +70,7 @@ const syncedAtFormatted = data.syncedAt
 
       <!-- ── Tab 2: Coverage ────────────────────────────────────── -->
       <div id="coverage" class="tab-panel" hidden>
+        <CoverageOverview planGroups={data.planGroups} />
         <PreparednessSection planGroups={data.planGroups} />
       </div>
 

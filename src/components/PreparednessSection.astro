@@ -10,10 +10,17 @@ const { planGroups } = Astro.props;
 
 {
   planGroups.map((group) => (
-    <section>
+    <section id={group.key}>
       <h2>
         {group.label}
-        <span class="count-chip">{group.countries.length}</span>
+        {(() => {
+          const missing = group.countries.filter((c) => !c.inGis).length;
+          return missing > 0 ? (
+            <span class="count-chip warn">{missing} missing</span>
+          ) : (
+            <span class="count-chip done">All in GIS</span>
+          );
+        })()}
       </h2>
 
       {group.countries.length > 0 ? (

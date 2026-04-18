@@ -418,7 +418,7 @@ export function loadData() {
         return endYear(b).localeCompare(endYear(a)) || a.iso3.localeCompare(b.iso3);
       }),
     },
-    { key: "gis_only", label: "No Plans — gis.unocha.org", countries: gisOnly },
+    { key: "gis_only", label: "No Plans — In GIS", countries: gisOnly },
     { key: "m49_only", label: "No Plans — Rest of M49", countries: m49Only },
   ];
 
