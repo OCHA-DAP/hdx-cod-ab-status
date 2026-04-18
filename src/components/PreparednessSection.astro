@@ -27,7 +27,7 @@ const { planGroups } = Astro.props;
         <table>
           <thead>
             <tr>
-              <th>Country</th>
+              <th>Location</th>
               <th>Plan Types</th>
               {group.key === "prior_only" && <th>Years</th>}
               <th>Office Type</th>
@@ -51,7 +51,7 @@ const { planGroups } = Astro.props;
           </tbody>
         </table>
       ) : (
-        <p class="empty">No countries found.</p>
+        <p class="empty">No locations found.</p>
       )}
     </section>
   ))

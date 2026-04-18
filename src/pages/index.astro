@@ -30,11 +30,6 @@ const syncedAtFormatted = data.syncedAt
     <div class="page">
       <header>
         <h1>COD-AB Activity Tracker</h1>
-        <p class="subtitle">
-          {data.total} work orders across {data.yearStats.length} cycle{
-            data.yearStats.length !== 1 ? "s" : ""
-          }
-        </p>
         {syncedAtFormatted && <p class="last-synced">Last synced: {syncedAtFormatted}</p>}
         <p class="update-schedule">Updates weekly on Wednesday mornings</p>
       </header>

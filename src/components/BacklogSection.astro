@@ -24,7 +24,7 @@ const { year, backlogCount, groups, gapRows } = Astro.props;
     </span>
   </h2>
   <p class="section-desc">
-    Incomplete items from the {year} cycle — work orders still in progress and countries expecting changes
+    Incomplete items from the {year} cycle — work orders still in progress and locations expecting changes
     with no work order yet.
   </p>
   {backlogCount > 0 && <WorkOrderTable groups={groups} />}
@@ -41,7 +41,7 @@ const { year, backlogCount, groups, gapRows } = Astro.props;
           </colgroup>
           <thead>
             <tr>
-              <th>Country</th>
+              <th>Location</th>
               <th>Plan Type</th>
               <th>Office Type</th>
               <th>Regional Office</th>
