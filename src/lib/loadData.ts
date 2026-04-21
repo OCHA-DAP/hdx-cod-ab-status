@@ -27,6 +27,7 @@ export interface WorkOrderRow {
   office_type: string;
   planned_quarter: string;
   created_date: string;
+  publication_date: string;
   regional: string;
 }
 
@@ -240,6 +241,7 @@ export function loadData() {
       office_type: officeTypeByIso3[wo.iso3] ?? "",
       planned_quarter: wo.planned_quarter ?? "",
       created_date: wo.creation_date ?? "",
+      publication_date: wo.publication_date ?? "",
       regional: office.regional ?? "",
     };
   }
