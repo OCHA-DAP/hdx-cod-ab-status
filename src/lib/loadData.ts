@@ -313,7 +313,9 @@ export function loadData() {
       (a, b) =>
         (a.planned_quarter || "ZZZZ").localeCompare(b.planned_quarter || "ZZZZ") ||
         woStatusRank(a.work_order_status) - woStatusRank(b.work_order_status) ||
-        (a.created_date || "").localeCompare(b.created_date || ""),
+        (a.publication_date || a.created_date || "").localeCompare(
+          b.publication_date || b.created_date || "",
+        ),
     );
   const backlogByQuarter = groupByQuarter(backlog);
 
@@ -323,7 +325,9 @@ export function loadData() {
     .sort(
       (a, b) =>
         woStatusRank(a.work_order_status) - woStatusRank(b.work_order_status) ||
-        (a.created_date || "").localeCompare(b.created_date || ""),
+        (a.publication_date || a.created_date || "").localeCompare(
+          b.publication_date || b.created_date || "",
+        ),
     );
   const currentByQuarter = groupByQuarter(currentCycleWork);
 

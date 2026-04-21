@@ -20,6 +20,17 @@ function ageLabel(createdDate: string, endDate?: string): string | null {
   }
   return `${days} day${days === 1 ? "" : "s"}`;
 }
+
+function ageTooltip(createdDate: string, publicationDate?: string): string | null {
+  if (!createdDate) return null;
+  const fmt = (d: string) =>
+    new Date(d + "T00:00:00")
+      .toLocaleDateString("en-GB", { year: "numeric", month: "short", day: "2-digit" })
+      .replace("Sept", "Sep");
+  if (publicationDate)
+    return `${fmt(createdDate)}  (created)\n${fmt(publicationDate)}  (published)`;
+  return `${fmt(createdDate)}  (created)`;
+}
 ---
 
 {
@@ -63,7 +74,11 @@ function ageLabel(createdDate: string, endDate?: string): string | null {
                 </span>
               </td>
               <td>
-                {ageLabel(row.created_date, row.publication_date || undefined) ?? "—"}
+                {(() => {
+                  const label = ageLabel(row.created_date, row.publication_date || undefined);
+                  const tip = ageTooltip(row.created_date, row.publication_date || undefined);
+                  return label ? <span title={tip ?? undefined}>{label}</span> : "—";
+                })()}
               </td>
               <td>{row.plan_type || "—"}</td>
               <td>{row.office_type || "—"}</td>
