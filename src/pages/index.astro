@@ -9,6 +9,8 @@ import "../styles/base.css";
 
 const data = loadData();
 const priorYears = data.yearStats.filter((y) => y.year !== data.latestYear);
+const totalInGis = data.planGroups.reduce((sum, g) => sum + g.countries.filter((c) => c.inGis).length, 0);
+const totalLocations = data.planGroups.reduce((sum, g) => sum + g.countries.length, 0);
 const syncedAtFormatted = data.syncedAt
   ? new Date(data.syncedAt).toLocaleDateString("en-GB", {
       day: "numeric",
@@ -36,12 +38,18 @@ const syncedAtFormatted = data.syncedAt
 
       <nav class="tab-bar">
         <button class="tab-btn active" data-tab="work-orders">
-          <span class="tab-title">Work Orders</span>
-          <span class="tab-desc">Pipeline &amp; status tracking</span>
+          <span class="tab-left">
+            <span class="tab-title">Work Orders</span>
+            <span class="tab-desc">Pipeline &amp; status tracking</span>
+          </span>
+          <span class="tab-count">{data.openTotal}</span>
         </button>
         <button class="tab-btn" data-tab="coverage">
-          <span class="tab-title">Coverage</span>
-          <span class="tab-desc">Plan &amp; preparedness gaps</span>
+          <span class="tab-left">
+            <span class="tab-title">Coverage</span>
+            <span class="tab-desc">Plan &amp; preparedness gaps</span>
+          </span>
+          <span class="tab-count">{totalInGis}<span class="tab-denom">/{totalLocations}</span></span>
         </button>
       </nav>
 
@@ -73,16 +81,17 @@ const syncedAtFormatted = data.syncedAt
         <span>Download:</span>
         <span class="footer-group">
           <span class="group-label">Managed</span>
-          <a href={`${import.meta.env.BASE_URL}/data/work.csv`}>Work orders</a>
-          <a href={`${import.meta.env.BASE_URL}/data/reviews.csv`}>Reviews</a>
+          <a href={`${import.meta.env.BASE_URL}data/work.csv`}>Work orders</a>
+          <a href={`${import.meta.env.BASE_URL}data/reviews.csv`}>Reviews</a>
         </span>
         <span class="footer-group">
           <span class="group-label">External</span>
-          <a href={`${import.meta.env.BASE_URL}/api/plans.csv`}>Plans</a>
-          <a href={`${import.meta.env.BASE_URL}/api/regions.csv`}>Regions</a>
-          <a href={`${import.meta.env.BASE_URL}/api/offices.csv`}>Offices</a>
-          <a href={`${import.meta.env.BASE_URL}/api/gis.csv`}>GIS</a>
-          <a href={`${import.meta.env.BASE_URL}/api/m49.csv`}>M49</a>
+          <a href={`${import.meta.env.BASE_URL}api/cod_metadata.csv`}>Metadata</a>
+          <a href={`${import.meta.env.BASE_URL}api/gis.csv`}>GIS</a>
+          <a href={`${import.meta.env.BASE_URL}api/m49.csv`}>M49</a>
+          <a href={`${import.meta.env.BASE_URL}api/offices.csv`}>Offices</a>
+          <a href={`${import.meta.env.BASE_URL}api/plans.csv`}>Plans</a>
+          <a href={`${import.meta.env.BASE_URL}api/regions.csv`}>Regions</a>
         </span>
       </footer>
     </div>
@@ -114,9 +123,10 @@ const syncedAtFormatted = data.syncedAt
 
   .tab-btn {
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.2rem;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
     padding: 0.75rem 1.25rem;
     flex: 1;
     background: none;
@@ -124,6 +134,30 @@ const syncedAtFormatted = data.syncedAt
     border-radius: 6px;
     cursor: pointer;
     text-align: left;
+  }
+
+  .tab-left {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .tab-count {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #3b82f6;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .tab-btn:not(.active) .tab-count {
+    color: #9ca3af;
+  }
+
+  .tab-denom {
+    font-size: 0.75em;
+    font-weight: 500;
+    opacity: 0.6;
   }
 
   .tab-btn.active {

@@ -59,10 +59,14 @@ export interface PlanCountry {
   plan_types: string[];
   inGis: boolean;
   year_range?: string;
+  next_review_date?: string;
+  next_review_sort?: string;
+  review_overdue?: boolean;
+  open_work_order_status?: string;
 }
 
 export interface PlanGroup {
-  key: "current_priority" | "current_other" | "prior_only" | "gis_only" | "m49_only";
+  key: "current_priority" | "current_other" | "prior_only" | "gis_only";
   label: string;
   countries: PlanCountry[];
 }
@@ -100,6 +104,23 @@ function woStatusRank(s: string): number {
   if (s === "published") return 3;
   if (s === "blocked") return 4;
   return 5;
+}
+
+function computeNextReview(
+  dateReviewed: string,
+  freq: number,
+): { next_review_date: string; next_review_sort: string; review_overdue: boolean } {
+  const d = new Date(dateReviewed + "T00:00:00Z");
+  d.setUTCFullYear(d.getUTCFullYear() + freq);
+  return {
+    next_review_date: d.toLocaleDateString("en-US", {
+      month: "short",
+      year: "numeric",
+      timeZone: "UTC",
+    }),
+    next_review_sort: d.toISOString().slice(0, 10),
+    review_overdue: d < new Date(),
+  };
 }
 
 function groupByQuarter(rows: WorkOrderRow[]): ScheduleGroup[] {
@@ -208,6 +229,16 @@ export function loadData() {
 
   const allRows = workOrders.map(buildRow);
 
+  // Most active open (non-published) work order status per iso3
+  const openWoByIso3: Record<string, string> = {};
+  for (const row of allRows) {
+    if (row.work_order_status === "published") continue;
+    const existing = openWoByIso3[row.iso3];
+    if (!existing || woStatusRank(row.work_order_status) < woStatusRank(existing)) {
+      openWoByIso3[row.iso3] = row.work_order_status;
+    }
+  }
+
   const coveredByWorkOrder = new Set(workOrders.map((wo) => `${wo.iso3}:${wo.year}`));
   const reviewGaps: ReviewGapRow[] = reviews
     .filter((r) => r.change_expected === "TRUE" && !coveredByWorkOrder.has(`${r.iso3}:${r.year}`))
@@ -310,6 +341,31 @@ export function loadData() {
   const gisText = readFileSync(join(apiDir, "gis.csv"), "utf-8");
   const gisIso3 = new Set(parseCsv(gisText).map((r) => r.iso3));
 
+  // Load COD Global Metadata (may not exist until npm run fetch has been run)
+  let codMetaByIso3: Record<string, { date_reviewed: string; update_frequency: number }> = {};
+  try {
+    const codMetaText = readFileSync(join(apiDir, "cod_metadata.csv"), "utf-8");
+    for (const r of parseCsv(codMetaText)) {
+      if (!r.country_iso3 || !r.date_reviewed || !r.update_frequency) continue;
+      const existing = codMetaByIso3[r.country_iso3];
+      if (!existing || r.date_reviewed > existing.date_reviewed) {
+        codMetaByIso3[r.country_iso3] = {
+          date_reviewed: r.date_reviewed,
+          update_frequency: Number(r.update_frequency),
+        };
+      }
+    }
+  } catch {
+    // file won't exist until npm run fetch has been run
+  }
+
+  function getCountryExtras(iso3: string) {
+    const meta = codMetaByIso3[iso3];
+    const reviewFields = meta ? computeNextReview(meta.date_reviewed, meta.update_frequency) : {};
+    const woStatus = openWoByIso3[iso3];
+    return woStatus ? { ...reviewFields, open_work_order_status: woStatus } : reviewFields;
+  }
+
   // Build plan groups from the plans data
   const latestPlanYear = [...new Set(plans.map((p) => p.year))].sort().at(-1) ?? "";
   const priorityTypes = new Set(["HRP", "HNRP", "FA"]);
@@ -341,6 +397,7 @@ export function loadData() {
         office_type: officeTypeByIso3[iso3] ?? "",
         plan_types: currentTypes,
         inGis: gisIso3.has(iso3),
+        ...getCountryExtras(iso3),
       };
       if (hasPriority) {
         currentPriority.push(country);
@@ -362,6 +419,7 @@ export function loadData() {
         plan_types: priorTypes,
         inGis: gisIso3.has(iso3),
         year_range,
+        ...getCountryExtras(iso3),
       });
     }
   }
@@ -379,6 +437,7 @@ export function loadData() {
         office_type: officeTypeByIso3[iso3] ?? "",
         plan_types: [],
         inGis: true,
+        ...getCountryExtras(iso3),
       };
     })
     .sort((a, b) => a.name_en.localeCompare(b.name_en));
@@ -394,32 +453,39 @@ export function loadData() {
         office_type: officeTypeByIso3[iso3] ?? "",
         plan_types: [],
         inGis: false,
+        ...getCountryExtras(iso3),
       };
     })
     .sort((a, b) => a.name_en.localeCompare(b.name_en));
 
-  const sort = (arr: PlanCountry[]) => arr.sort((a, b) => a.name_en.localeCompare(b.name_en));
+  const byNextReview = (a: PlanCountry, b: PlanCountry) => {
+    if (a.next_review_sort && b.next_review_sort)
+      return a.next_review_sort.localeCompare(b.next_review_sort);
+    if (a.next_review_sort) return -1;
+    if (b.next_review_sort) return 1;
+    return a.name_en.localeCompare(b.name_en);
+  };
   const planGroups: PlanGroup[] = [
     {
       key: "current_priority",
       label: `${latestPlanYear} — HNRP / FA`,
-      countries: sort(currentPriority),
+      countries: currentPriority.sort(byNextReview),
     },
     {
       key: "current_other",
       label: `${latestPlanYear} — Other Plans`,
-      countries: sort(currentOther),
+      countries: currentOther.sort(byNextReview),
     },
     {
       key: "prior_only",
       label: "Prior Year Plans",
-      countries: priorOnly.sort((a, b) => {
-        const endYear = (c: PlanCountry) => (c.year_range ?? "").split("–").at(-1) ?? "";
-        return endYear(b).localeCompare(endYear(a)) || a.iso3.localeCompare(b.iso3);
-      }),
+      countries: priorOnly.sort(byNextReview),
     },
-    { key: "gis_only", label: "No Plans — In GIS", countries: gisOnly },
-    { key: "m49_only", label: "No Plans — Rest of M49", countries: m49Only },
+    {
+      key: "gis_only",
+      label: "No Plans",
+      countries: [...gisOnly, ...m49Only].sort(byNextReview),
+    },
   ];
 
   return {
@@ -434,6 +500,7 @@ export function loadData() {
     reviewGaps,
     reviewGapsByYear,
     total: allRows.length,
+    openTotal: allRows.filter((r) => r.work_order_status !== "published").length,
     syncedAt,
   };
 }

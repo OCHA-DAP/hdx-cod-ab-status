@@ -33,6 +33,7 @@ const { planGroups } = Astro.props;
               <th>Office Type</th>
               <th>Regional Office</th>
               <th>In GIS</th>
+              <th>Next Review</th>
             </tr>
           </thead>
           <tbody>
@@ -46,6 +47,15 @@ const { planGroups } = Astro.props;
                 <td>{row.office_type || "—"}</td>
                 <td>{row.regional || "—"}</td>
                 <td class={row.inGis ? "flag-yes" : "flag-no"}>{row.inGis ? "Yes" : "No"}</td>
+                <td class={row.review_overdue ? "flag-no" : ""}>
+                  {row.next_review_date ?? "—"}
+                  {row.open_work_order_status && (
+                    <span class={`wo-badge wo-${row.open_work_order_status}`}>
+                      {row.open_work_order_status.charAt(0).toUpperCase() +
+                        row.open_work_order_status.slice(1)}
+                    </span>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -61,5 +71,37 @@ const { planGroups } = Astro.props;
   .flag-no {
     color: #b45309;
     font-weight: 600;
+  }
+
+  .wo-badge {
+    display: inline-block;
+    margin-left: 0.4em;
+    padding: 0.1em 0.45em;
+    border-radius: 3px;
+    font-size: 0.75em;
+    font-weight: 600;
+    vertical-align: middle;
+    background: #e5e7eb;
+    color: #374151;
+  }
+
+  .wo-badge.wo-processing {
+    background: #dbeafe;
+    color: #1d4ed8;
+  }
+
+  .wo-badge.wo-feedback {
+    background: #fef9c3;
+    color: #92400e;
+  }
+
+  .wo-badge.wo-initialized {
+    background: #f3f4f6;
+    color: #6b7280;
+  }
+
+  .wo-badge.wo-blocked {
+    background: #fee2e2;
+    color: #b91c1c;
   }
 </style>
