@@ -1,42 +1,28 @@
-# sv
+# COD-AB Activity Tracker
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+A dashboard for monitoring humanitarian data work orders and geographic preparedness across OCHA's Common Operational Datasets (COD-AB) program.
 
-## Creating a project
+## What it does
 
-If you're seeing this, you've probably already done this step. Congrats!
+The tracker gives HDX team members a live view of where COD boundary data stands — what's being updated, what's overdue, and which locations are covered by humanitarian response plans. Data is synced weekly from SharePoint and ArcGIS sources.
 
-```sh
-# create a new project
-npx sv create my-app
-```
+### Work Orders tab
 
-To recreate this project with the same configuration:
+Tracks the pipeline of data update requests by year and quarter. Shows open work orders broken down by status (Initialized, Processing, Feedback, Published, Blocked), highlights locations where updates are expected but no work order exists yet, and archives prior-year backlogs.
 
-```sh
-# recreate this project
-npx sv@0.15.0 create --template minimal --types ts --add prettier eslint --install npm my-app
-```
+### Coverage tab
 
-## Developing
+Shows which locations are covered by humanitarian response plans (HRP, HNRP, FA, and others) and whether each location is in the GIS catalog. Includes a country-level preparedness table with next scheduled review dates and any overdue flags.
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+## Data sources
 
-```sh
-npm run dev
+| Source      | Contents                               | Updated via                           |
+| ----------- | -------------------------------------- | ------------------------------------- |
+| SharePoint  | Work orders, review schedule           | `npm run sync` (copies from OneDrive) |
+| ArcGIS      | GIS catalog, COD metadata              | `npm run fetch` (Python scripts)      |
+| UN M49      | Country codes and geographic hierarchy | `npm run fetch`                       |
+| FTS / other | Humanitarian plans, offices, regions   | `npm run fetch`                       |
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
+## Deployment
 
-## Building
-
-To create a production version of your app:
-
-```sh
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+Deployed to GitHub Pages. See [CLAUDE.md](CLAUDE.md) for development setup and commands.
