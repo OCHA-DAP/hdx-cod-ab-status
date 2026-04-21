@@ -312,14 +312,19 @@ export function loadData() {
     .sort(
       (a, b) =>
         (a.planned_quarter || "ZZZZ").localeCompare(b.planned_quarter || "ZZZZ") ||
-        woStatusRank(a.work_order_status) - woStatusRank(b.work_order_status),
+        woStatusRank(a.work_order_status) - woStatusRank(b.work_order_status) ||
+        (a.created_date || "").localeCompare(b.created_date || ""),
     );
   const backlogByQuarter = groupByQuarter(backlog);
 
   // Current cycle: all work orders from the latest year
   const currentCycleWork = allRows
     .filter((r) => r.year === latestYear)
-    .sort((a, b) => woStatusRank(a.work_order_status) - woStatusRank(b.work_order_status));
+    .sort(
+      (a, b) =>
+        woStatusRank(a.work_order_status) - woStatusRank(b.work_order_status) ||
+        (a.created_date || "").localeCompare(b.created_date || ""),
+    );
   const currentByQuarter = groupByQuarter(currentCycleWork);
 
   // Plan coverage per year (newest first)
