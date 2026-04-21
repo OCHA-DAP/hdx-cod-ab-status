@@ -7,6 +7,10 @@ import CoverageOverview from "../components/CoverageOverview.astro";
 import { loadData } from "../lib/loadData.ts";
 import "../styles/base.css";
 
+const base = import.meta.env.BASE_URL.endsWith("/")
+  ? import.meta.env.BASE_URL
+  : import.meta.env.BASE_URL + "/";
+
 const data = loadData();
 const priorYears = data.yearStats.filter((y) => y.year !== data.latestYear);
 const totalInGis = data.planGroups.reduce((sum, g) => sum + g.countries.filter((c) => c.inGis).length, 0);
@@ -25,7 +29,7 @@ const syncedAtFormatted = data.syncedAt
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" type="image/svg+xml" href={`${import.meta.env.BASE_URL}/favicon.svg`} />
+    <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
     <title>COD-AB Activity Tracker</title>
   </head>
   <body>
@@ -80,18 +84,21 @@ const syncedAtFormatted = data.syncedAt
       <footer>
         <span>Download:</span>
         <span class="footer-group">
-          <span class="group-label">Managed</span>
-          <a href={`${import.meta.env.BASE_URL}data/work.csv`}>Work orders</a>
-          <a href={`${import.meta.env.BASE_URL}data/reviews.csv`}>Reviews</a>
+          <span class="group-label">SharePoint</span>
+          <a href={`${base}data/work.csv`}>Work orders</a>
+          <a href={`${base}data/reviews.csv`}>Reviews</a>
+        </span>
+        <span class="footer-group">
+          <span class="group-label">ArcGIS</span>
+          <a href={`${base}api/gis.csv`}>Locations</a>
+          <a href={`${base}api/cod_metadata.csv`}>Metadata</a>
         </span>
         <span class="footer-group">
           <span class="group-label">External</span>
-          <a href={`${import.meta.env.BASE_URL}api/cod_metadata.csv`}>Metadata</a>
-          <a href={`${import.meta.env.BASE_URL}api/gis.csv`}>GIS</a>
-          <a href={`${import.meta.env.BASE_URL}api/m49.csv`}>M49</a>
-          <a href={`${import.meta.env.BASE_URL}api/offices.csv`}>Offices</a>
-          <a href={`${import.meta.env.BASE_URL}api/plans.csv`}>Plans</a>
-          <a href={`${import.meta.env.BASE_URL}api/regions.csv`}>Regions</a>
+          <a href={`${base}api/m49.csv`}>M49</a>
+          <a href={`${base}api/plans.csv`}>Plans</a>
+          <a href={`${base}api/offices.csv`}>Offices</a>
+          <a href={`${base}api/regions.csv`}>Regions</a>
         </span>
       </footer>
     </div>
