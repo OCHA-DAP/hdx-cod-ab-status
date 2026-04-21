@@ -61,6 +61,7 @@ export interface PlanCountry {
   year_range?: string;
   next_review_date?: string;
   next_review_sort?: string;
+  next_review_relative?: string;
   review_overdue?: boolean;
   open_work_order_status?: string;
 }
@@ -109,9 +110,24 @@ function woStatusRank(s: string): number {
 function computeNextReview(
   dateReviewed: string,
   freq: number,
-): { next_review_date: string; next_review_sort: string; review_overdue: boolean } {
+): {
+  next_review_date: string;
+  next_review_sort: string;
+  next_review_relative: string;
+  review_overdue: boolean;
+} {
   const d = new Date(dateReviewed + "T00:00:00Z");
   d.setUTCFullYear(d.getUTCFullYear() + freq);
+  const now = new Date();
+  const overdue = d < now;
+  const diffMs = overdue ? now.getTime() - d.getTime() : d.getTime() - now.getTime();
+  const diffMonths = Math.round(diffMs / (1000 * 60 * 60 * 24 * 30.44));
+  const relative =
+    diffMonths === 0
+      ? "This month"
+      : overdue
+        ? `${diffMonths} month${diffMonths === 1 ? "" : "s"} late`
+        : `In ${diffMonths} month${diffMonths === 1 ? "" : "s"}`;
   return {
     next_review_date: d.toLocaleDateString("en-US", {
       month: "short",
@@ -119,7 +135,8 @@ function computeNextReview(
       timeZone: "UTC",
     }),
     next_review_sort: d.toISOString().slice(0, 10),
-    review_overdue: d < new Date(),
+    next_review_relative: relative,
+    review_overdue: overdue,
   };
 }
 

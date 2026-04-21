@@ -48,7 +48,7 @@ const { planGroups } = Astro.props;
                 <td>{row.regional || "—"}</td>
                 <td class={row.inGis ? "flag-yes" : "flag-no"}>{row.inGis ? "Yes" : "No"}</td>
                 <td class={row.review_overdue ? "flag-no" : ""}>
-                  {row.next_review_date ?? "—"}
+                  <span title={row.next_review_date}>{row.next_review_relative ?? "—"}</span>
                   {row.open_work_order_status && (
                     <span class={`wo-badge wo-${row.open_work_order_status}`}>
                       {row.open_work_order_status.charAt(0).toUpperCase() +
