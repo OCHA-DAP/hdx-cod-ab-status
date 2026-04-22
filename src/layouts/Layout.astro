@@ -82,6 +82,21 @@ const isCoverage = pathname.endsWith("/coverage");
 </html>
 
 
+<script>
+  function updateActiveTabs() {
+    const isCoverage =
+      window.location.pathname.endsWith("/coverage") ||
+      window.location.pathname.endsWith("/coverage/");
+    document.querySelectorAll<HTMLAnchorElement>(".tab-btn").forEach((btn) => {
+      const href = btn.getAttribute("href") ?? "";
+      const btnIsCoverage = href.endsWith("coverage") || href.endsWith("coverage/");
+      btn.classList.toggle("active", btnIsCoverage === isCoverage);
+    });
+  }
+
+  document.addEventListener("astro:page-load", updateActiveTabs);
+</script>
+
 <style>
   /* ── Tabs ───────────────────────────────────────────────────── */
   .tab-bar {
