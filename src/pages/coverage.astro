@@ -1,0 +1,31 @@
+---
+import CoverageOverview from "../components/CoverageOverview.astro";
+import PreparednessSection from "../components/PreparednessSection.astro";
+import Layout from "../layouts/Layout.astro";
+import { loadData } from "../lib/loadData.ts";
+
+const data = loadData();
+const totalInGis = data.planGroups.reduce(
+  (sum, g) => sum + g.countries.filter((c) => c.inGis).length,
+  0,
+);
+const totalLocations = data.planGroups.reduce((sum, g) => sum + g.countries.length, 0);
+const syncedAtFormatted = data.syncedAt
+  ? new Date(data.syncedAt).toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      timeZone: "UTC",
+    })
+  : null;
+---
+
+<Layout
+  syncedAtFormatted={syncedAtFormatted}
+  openTotal={data.openTotal}
+  totalInGis={totalInGis}
+  totalLocations={totalLocations}
+>
+  <CoverageOverview planGroups={data.planGroups} />
+  <PreparednessSection planGroups={data.planGroups} />
+</Layout>

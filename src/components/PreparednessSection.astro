@@ -25,7 +25,7 @@ const { planGroups } = Astro.props;
 
       {group.countries.length > 0 ? (
         <table>
-          {group.key === "prior_only" ? (
+          {group.key === "prior-plans" ? (
             <colgroup>
               <col style="width: 29%" />
               <col style="width: 13%" />
@@ -49,7 +49,7 @@ const { planGroups } = Astro.props;
             <tr>
               <th>Location</th>
               <th>Plan Types</th>
-              {group.key === "prior_only" && <th>Years</th>}
+              {group.key === "prior-plans" && <th>Years</th>}
               <th>Office Type</th>
               <th>Regional Office</th>
               <th>In GIS</th>
@@ -63,7 +63,7 @@ const { planGroups } = Astro.props;
                   {row.name_en} <span class="iso3">{row.iso3}</span>
                 </td>
                 <td>{row.plan_types.join(" / ") || "—"}</td>
-                {group.key === "prior_only" && <td>{row.year_range ?? "—"}</td>}
+                {group.key === "prior-plans" && <td>{row.year_range ?? "—"}</td>}
                 <td>{row.office_type || "—"}</td>
                 <td>{row.regional || "—"}</td>
                 <td class={row.inGis ? "flag-yes" : "flag-no"}>{row.inGis ? "Yes" : "No"}</td>
@@ -88,6 +88,10 @@ const { planGroups } = Astro.props;
 }
 
 <style>
+  section {
+    scroll-margin-top: 0.75rem;
+  }
+
   .flag-no {
     color: #b45309;
     font-weight: 600;

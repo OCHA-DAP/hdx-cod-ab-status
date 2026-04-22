@@ -69,7 +69,7 @@ export interface PlanCountry {
 }
 
 export interface PlanGroup {
-  key: "current_priority" | "current_other" | "prior_only" | "gis_only";
+  key: "hnrp-fa" | "other-plans" | "prior-plans" | "no-plans";
   label: string;
   countries: PlanCountry[];
 }
@@ -528,22 +528,22 @@ export function loadData() {
   };
   const planGroups: PlanGroup[] = [
     {
-      key: "current_priority",
+      key: "hnrp-fa",
       label: `HNRP / FA (${latestPlanYear})`,
       countries: currentPriority.sort(byNextReview),
     },
     {
-      key: "current_other",
+      key: "other-plans",
       label: `Other Plans (${latestPlanYear})`,
       countries: currentOther.sort(byNextReview),
     },
     {
-      key: "prior_only",
-      label: `All Plans (2000-${Number(latestPlanYear) - 1})`,
+      key: "prior-plans",
+      label: `Prior Plans (2000-${Number(latestPlanYear) - 1})`,
       countries: priorOnly.sort(byNextReview),
     },
     {
-      key: "gis_only",
+      key: "no-plans",
       label: `No Plans (2000-${latestPlanYear})`,
       countries: [...gisOnly, ...m49Only].sort(byNextReview),
     },
