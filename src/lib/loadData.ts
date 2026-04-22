@@ -520,6 +520,7 @@ export function loadData() {
       return a.next_review_sort.localeCompare(b.next_review_sort);
     if (a.next_review_sort) return -1;
     if (b.next_review_sort) return 1;
+    if (a.inGis !== b.inGis) return a.inGis ? -1 : 1;
     return a.name_en.localeCompare(b.name_en);
   };
   const planGroups: PlanGroup[] = [

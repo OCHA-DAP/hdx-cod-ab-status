@@ -36,8 +36,8 @@ const syncedAtFormatted = data.syncedAt
     <div class="page">
       <header>
         <h1>COD-AB Activity Tracker</h1>
+        <p class="update-schedule">Work order data updated weekly on Wednesdays</p>
         {syncedAtFormatted && <p class="last-synced">Last synced: {syncedAtFormatted}</p>}
-        <p class="update-schedule">Updates weekly on Wednesday mornings</p>
       </header>
 
       <nav class="tab-bar">
@@ -46,7 +46,7 @@ const syncedAtFormatted = data.syncedAt
             <span class="tab-title">Work Orders</span>
             <span class="tab-desc">Pipeline &amp; status tracking</span>
           </span>
-          <span class="tab-count">{data.openTotal}</span>
+          <span class="tab-count">{data.openTotal}<span class="tab-denom"> open</span></span>
         </button>
         <button class="tab-btn" data-tab="coverage">
           <span class="tab-left">
