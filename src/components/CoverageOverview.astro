@@ -110,7 +110,10 @@ function coverageClass(inGis: number, total: number): string {
         <a class="cycle-card" href={`#${group.key}`}>
           <div class="cycle-label">{group.label}</div>
           <div class={`stat-card ${coverageClass(inGis, total)}`}>
-            <span class="stat-num">{inGis}<span class="stat-denom">/{total}</span></span>
+            <span class="stat-num">
+              {inGis}
+              <span class="stat-denom">/{total}</span>
+            </span>
             <span class="stat-lbl">In GIS</span>
           </div>
         </a>

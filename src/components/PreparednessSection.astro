@@ -25,6 +25,26 @@ const { planGroups } = Astro.props;
 
       {group.countries.length > 0 ? (
         <table>
+          {group.key === "prior_only" ? (
+            <colgroup>
+              <col style="width: 29%" />
+              <col style="width: 13%" />
+              <col style="width: 9%" />
+              <col style="width: 11%" />
+              <col style="width: 13%" />
+              <col style="width: 8%" />
+              <col style="width: 17%" />
+            </colgroup>
+          ) : (
+            <colgroup>
+              <col style="width: 30%" />
+              <col style="width: 14%" />
+              <col style="width: 12%" />
+              <col style="width: 15%" />
+              <col style="width: 8%" />
+              <col style="width: 21%" />
+            </colgroup>
+          )}
           <thead>
             <tr>
               <th>Location</th>
@@ -33,7 +53,7 @@ const { planGroups } = Astro.props;
               <th>Office Type</th>
               <th>Regional Office</th>
               <th>In GIS</th>
-              <th style="width: 10rem">Next Review</th>
+              <th>Next Review</th>
             </tr>
           </thead>
           <tbody>

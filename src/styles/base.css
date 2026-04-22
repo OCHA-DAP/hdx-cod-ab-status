@@ -189,6 +189,11 @@ tr.row-gap:hover td {
   font-family: monospace;
 }
 
+.upd-icon {
+  font-size: 0.6rem;
+  color: #999;
+}
+
 .mono {
   font-family: monospace;
   font-size: 0.78rem;

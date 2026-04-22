@@ -29,6 +29,7 @@ export interface WorkOrderRow {
   created_date: string;
   publication_date: string;
   regional: string;
+  update_type: string;
 }
 
 export interface ScheduleGroup {
@@ -121,7 +122,8 @@ function woPlanTypeRank(s: string): number {
 function woOfficeTypeRank(s: string): number {
   if (s === "CO") return 0;
   if (s === "HAT") return 1;
-  return 2;
+  if (s === "RO") return 2;
+  return 3;
 }
 
 function computeNextReview(
@@ -259,6 +261,7 @@ export function loadData() {
       created_date: wo.creation_date ?? "",
       publication_date: wo.publication_date ?? "",
       regional: office.regional ?? "",
+      update_type: wo.update_type ?? "",
     };
   }
 
@@ -394,7 +397,7 @@ export function loadData() {
   const gisIso3 = new Set(parseCsv(gisText).map((r) => r.iso3));
 
   // Load COD Global Metadata (may not exist until npm run fetch has been run)
-  let codMetaByIso3: Record<string, { anchor_date: string; update_frequency: number }> = {};
+  const codMetaByIso3: Record<string, { anchor_date: string; update_frequency: number }> = {};
   try {
     const codMetaText = readFileSync(join(apiDir, "cod_metadata.csv"), "utf-8");
     for (const r of parseCsv(codMetaText)) {

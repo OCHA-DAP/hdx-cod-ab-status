@@ -45,16 +45,18 @@ function ageTooltip(createdDate: string, publicationDate?: string): string | nul
       </h3>
       <table>
         <colgroup>
-          <col style="width: 25%" />
-          <col style="width: 18%" />
+          <col style="width: 30%" />
+          <col style="width: 3%" />
+          <col style="width: 15%" />
           <col style="width: 11%" />
-          <col style="width: 16%" />
-          <col style="width: 14%" />
-          <col style="width: 16%" />
+          <col style="width: 15%" />
+          <col style="width: 11%" />
+          <col style="width: 15%" />
         </colgroup>
         <thead>
           <tr>
             <th>Location</th>
+            <th title="Update type (major / minor)" />
             <th>Status</th>
             <th>Open For</th>
             <th>Plan Type</th>
@@ -67,6 +69,17 @@ function ageTooltip(createdDate: string, publicationDate?: string): string | nul
             <tr>
               <td>
                 {row.name_en} <span class="iso3">{row.iso3}</span>
+              </td>
+              <td>
+                {row.update_type === "major" ? (
+                  <span class="upd-icon upd-major" title="Major update">
+                    ●
+                  </span>
+                ) : row.update_type === "minor" ? (
+                  <span class="upd-icon upd-minor" title="Minor update">
+                    ○
+                  </span>
+                ) : null}
               </td>
               <td>
                 <span class={`badge ${statusClass(row.work_order_status)}`}>

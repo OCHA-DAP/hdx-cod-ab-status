@@ -6,10 +6,11 @@
 """
 offices.py
 
-Fetches OCHA country offices (CO) and humanitarian advisory teams (HAT)
-from the OCHA PowerBI dashboard and writes public/api/offices.csv.
+Fetches OCHA country offices (CO), humanitarian advisory teams (HAT),
+and regional offices (RO) from the OCHA PowerBI dashboard and writes
+public/api/offices.csv.
 
-Output CSV columns:  iso3, type   (type is "CO" or "HAT")
+Output CSV columns:  iso3, type   (type is "CO", "HAT", or "RO")
 
 Also verifies the CO list against the Jan 2026 OCHA org chart PDF.
 
@@ -305,17 +306,24 @@ for row in hat_rows:
         continue
     if country.lower().strip() in SKIP_NAMES:
         continue
-    # Only include Humanitarian Advisor Teams; skip Regional Offices and Liaison Offices
-    if "humanitarian" not in office_type.lower():
-        continue
+
+    ot_lower = office_type.lower()
+    if "humanitarian" in ot_lower:
+        entry_type = "HAT"
+    elif "regional" in ot_lower:
+        entry_type = "RO"
+    else:
+        continue  # skip Liaison Offices and other types
 
     iso3 = resolve_iso3(country, m49)
     if not iso3:
-        unmatched.append({"name": country, "type": "HAT"})
+        unmatched.append({"name": country, "type": entry_type})
         continue
-    # Don't overwrite a CO with HAT
-    if iso3 not in result_map:
-        result_map[iso3] = "HAT"
+    # Priority: CO > HAT > RO — don't overwrite a higher-priority entry
+    existing = result_map.get(iso3)
+    if existing == "CO" or (existing == "HAT" and entry_type == "RO"):
+        continue
+    result_map[iso3] = entry_type
 
 # ── 3. Write CSV ──────────────────────────────────────────────────────────
 sorted_entries = sorted(result_map.items())
@@ -328,6 +336,7 @@ type_counts = Counter(t for _, t in sorted_entries)
 print(f"\nWrote {len(sorted_entries)} rows → {OUTPUT_CSV}")
 print(f"  CO:  {type_counts['CO']}")
 print(f"  HAT: {type_counts['HAT']}")
+print(f"  RO:  {type_counts['RO']}")
 
 if unmatched:
     names = "\n".join(f'  "{u["name"]}" [{u["type"]}]' for u in unmatched)

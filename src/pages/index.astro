@@ -13,7 +13,10 @@ const base = import.meta.env.BASE_URL.endsWith("/")
 
 const data = loadData();
 const priorYears = data.yearStats.filter((y) => y.year !== data.latestYear);
-const totalInGis = data.planGroups.reduce((sum, g) => sum + g.countries.filter((c) => c.inGis).length, 0);
+const totalInGis = data.planGroups.reduce(
+  (sum, g) => sum + g.countries.filter((c) => c.inGis).length,
+  0,
+);
 const totalLocations = data.planGroups.reduce((sum, g) => sum + g.countries.length, 0);
 const syncedAtFormatted = data.syncedAt
   ? new Date(data.syncedAt).toLocaleDateString("en-GB", {
@@ -53,7 +56,8 @@ const syncedAtFormatted = data.syncedAt
             <span class="tab-title">Coverage</span>
             <span class="tab-desc">Plan &amp; preparedness gaps</span>
           </span>
-          <span class="tab-count">{totalInGis}<span class="tab-denom">/{totalLocations}</span></span>
+          <span class="tab-count">{totalInGis}<span class="tab-denom">/{totalLocations}</span></span
+          >
         </button>
       </nav>
 
