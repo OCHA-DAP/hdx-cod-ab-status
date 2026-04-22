@@ -89,7 +89,7 @@ SKIP_NAMES: set[str] = {"office for the pacific (suva)", "asean", "aulo"}
 # ---------------------------------------------------------------------------
 def build_m49_lookup() -> dict[str, str]:
     try:
-        text = M49_CSV.read_text(encoding="utf-8")
+        text = M49_CSV.read_text(encoding="utf-8-sig")
     except FileNotFoundError:
         print("  M49 CSV not found — run `python3 scripts/m49.py` first", file=sys.stderr)
         return {}
@@ -319,7 +319,7 @@ for row in hat_rows:
 
 # ── 3. Write CSV ──────────────────────────────────────────────────────────
 sorted_entries = sorted(result_map.items())
-with open(OUTPUT_CSV, "w", newline="", encoding="utf-8") as f:
+with open(OUTPUT_CSV, "w", newline="", encoding="utf-8-sig") as f:
     writer = csv.writer(f)
     writer.writerow(["iso3", "type"])
     writer.writerows(sorted_entries)

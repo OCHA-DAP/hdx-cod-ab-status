@@ -119,7 +119,7 @@ if not records:
 all_cols = sorted({k for r in records for k in r} - {"country_iso3"})
 fieldnames = ["country_iso3"] + all_cols
 
-with open(OUTPUT, "w", newline="", encoding="utf-8") as f:
+with open(OUTPUT, "w", newline="", encoding="utf-8-sig") as f:
     writer = csv.DictWriter(f, fieldnames=fieldnames)
     writer.writeheader()
     writer.writerows(records)

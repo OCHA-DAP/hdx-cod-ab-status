@@ -1,6 +1,6 @@
-iso3,year,id,creation_date,status,planned_quarter,publication_date
-AFG,2025,AFG_202510,2025-10-27,processing,2026-Q2,
-AGO,2025,AGO_202506,2025-06-03,blocked,,
+﻿iso3,year,id,creation_date,status,planned_quarter,publication_date
+AFG,2025,AFG_202510,2025-10-27,feedback,2026-Q2,
+AGO,2025,AGO_202506,2025-06-03,processing,,
 BDI,2025,BDI_202510,2025-10-27,blocked,,
 BFA,2025,BFA_202510,2025-09-30,published,2025-Q4,2025-12-26
 BGD,2025,BGD_20250317,2025-03-17,published,2025-Q3,2025-08-19

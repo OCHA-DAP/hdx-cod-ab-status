@@ -63,7 +63,7 @@ rows[0] = [
     re.sub(r"^_|_$", "", re.sub(r"[^a-z0-9]+", "_", h.lower())) for h in rows[0]
 ]
 
-with open(OUTPUT, "w", newline="", encoding="utf-8") as f:
+with open(OUTPUT, "w", newline="", encoding="utf-8-sig") as f:
     writer = csv.writer(f)
     writer.writerows(rows)
 

@@ -90,7 +90,7 @@ print(f"{len(services)} services found in Hosted folder")
 countries = extract_countries(services)
 print(f"{len(countries)} COD-AB countries found")
 
-with open(OUTPUT, "w", newline="", encoding="utf-8") as f:
+with open(OUTPUT, "w", newline="", encoding="utf-8-sig") as f:
     writer = csv.writer(f)
     writer.writerow(["iso3"])
     writer.writerows([iso3] for iso3 in countries)

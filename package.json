@@ -13,7 +13,7 @@
     "lint": "prettier --check . && eslint .",
     "format": "prettier --write .",
     "update": "npx npm-check-updates -u && npm install",
-    "sync": "sh sync-data.sh"
+    "sync": "uv run scripts/sync_data.py"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.8",

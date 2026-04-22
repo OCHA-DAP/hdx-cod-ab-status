@@ -115,7 +115,7 @@ hub_mapping, all_hubs, conflict_resolutions = fetch_hdx_hubs()
 print_analysis(all_hubs, conflict_resolutions)
 
 rows = sorted(hub_mapping.keys())
-with open(OUTPUT, "w", newline="", encoding="utf-8") as f:
+with open(OUTPUT, "w", newline="", encoding="utf-8-sig") as f:
     writer = csv.writer(f)
     writer.writerow(["iso3", "regional"])
     for iso3 in rows:

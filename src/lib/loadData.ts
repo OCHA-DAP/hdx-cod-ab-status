@@ -97,19 +97,35 @@ const STATUS_LABELS: Record<string, string> = {
   blocked: "Blocked",
 };
 
-const STATUS_ORDER = ["initialized", "processing", "feedback", "published", "blocked"];
+const STATUS_ORDER = ["feedback", "processing", "initialized", "published", "blocked"];
 
 function woStatusRank(s: string): number {
-  if (s === "initialized") return 0;
+  if (s === "feedback") return 0;
   if (s === "processing") return 1;
-  if (s === "feedback") return 2;
+  if (s === "initialized") return 2;
   if (s === "published") return 3;
   if (s === "blocked") return 4;
   return 5;
 }
 
+function woPlanTypeRank(s: string): number {
+  if (!s) return 5;
+  const lower = s.toLowerCase();
+  if (lower.includes("hnrp")) return 0;
+  if (lower.includes("hrp")) return 1;
+  if (lower.includes("fa")) return 2;
+  if (lower.includes("reg")) return 3;
+  return 4;
+}
+
+function woOfficeTypeRank(s: string): number {
+  if (s === "CO") return 0;
+  if (s === "HAT") return 1;
+  return 2;
+}
+
 function computeNextReview(
-  dateReviewed: string,
+  anchorDate: string,
   freq: number,
 ): {
   next_review_date: string;
@@ -117,7 +133,7 @@ function computeNextReview(
   next_review_relative: string;
   review_overdue: boolean;
 } {
-  const d = new Date(dateReviewed + "T00:00:00Z");
+  const d = new Date(anchorDate + "T00:00:00Z");
   d.setUTCFullYear(d.getUTCFullYear() + freq);
   const now = new Date();
   const overdue = d < now;
@@ -274,7 +290,12 @@ export function loadData() {
         regional: office.regional ?? "",
       };
     })
-    .sort((a, b) => a.name_en.localeCompare(b.name_en));
+    .sort(
+      (a, b) =>
+        woPlanTypeRank(a.plan_type) - woPlanTypeRank(b.plan_type) ||
+        woOfficeTypeRank(a.office_type) - woOfficeTypeRank(b.office_type) ||
+        a.name_en.localeCompare(b.name_en),
+    );
 
   // Review gaps grouped by year for per-section access
   const reviewGapsByYear: Record<string, ReviewGapRow[]> = {};
@@ -311,8 +332,9 @@ export function loadData() {
     .filter((r) => r.year !== latestYear)
     .sort(
       (a, b) =>
-        (a.planned_quarter || "ZZZZ").localeCompare(b.planned_quarter || "ZZZZ") ||
         woStatusRank(a.work_order_status) - woStatusRank(b.work_order_status) ||
+        woPlanTypeRank(a.plan_type) - woPlanTypeRank(b.plan_type) ||
+        woOfficeTypeRank(a.office_type) - woOfficeTypeRank(b.office_type) ||
         (a.publication_date || a.created_date || "").localeCompare(
           b.publication_date || b.created_date || "",
         ),
@@ -325,6 +347,8 @@ export function loadData() {
     .sort(
       (a, b) =>
         woStatusRank(a.work_order_status) - woStatusRank(b.work_order_status) ||
+        woPlanTypeRank(a.plan_type) - woPlanTypeRank(b.plan_type) ||
+        woOfficeTypeRank(a.office_type) - woOfficeTypeRank(b.office_type) ||
         (a.publication_date || a.created_date || "").localeCompare(
           b.publication_date || b.created_date || "",
         ),
@@ -370,15 +394,20 @@ export function loadData() {
   const gisIso3 = new Set(parseCsv(gisText).map((r) => r.iso3));
 
   // Load COD Global Metadata (may not exist until npm run fetch has been run)
-  let codMetaByIso3: Record<string, { date_reviewed: string; update_frequency: number }> = {};
+  let codMetaByIso3: Record<string, { anchor_date: string; update_frequency: number }> = {};
   try {
     const codMetaText = readFileSync(join(apiDir, "cod_metadata.csv"), "utf-8");
     for (const r of parseCsv(codMetaText)) {
-      if (!r.country_iso3 || !r.date_reviewed || !r.update_frequency) continue;
+      if (!r.country_iso3 || !r.update_frequency) continue;
+      const anchor = [r.date_reviewed, r.date_updated, r.date_valid_from]
+        .filter(Boolean)
+        .sort()
+        .at(-1);
+      if (!anchor) continue;
       const existing = codMetaByIso3[r.country_iso3];
-      if (!existing || r.date_reviewed > existing.date_reviewed) {
+      if (!existing || anchor > existing.anchor_date) {
         codMetaByIso3[r.country_iso3] = {
-          date_reviewed: r.date_reviewed,
+          anchor_date: anchor,
           update_frequency: Number(r.update_frequency),
         };
       }
@@ -389,7 +418,7 @@ export function loadData() {
 
   function getCountryExtras(iso3: string) {
     const meta = codMetaByIso3[iso3];
-    const reviewFields = meta ? computeNextReview(meta.date_reviewed, meta.update_frequency) : {};
+    const reviewFields = meta ? computeNextReview(meta.anchor_date, meta.update_frequency) : {};
     const woStatus = openWoByIso3[iso3];
     return woStatus ? { ...reviewFields, open_work_order_status: woStatus } : reviewFields;
   }

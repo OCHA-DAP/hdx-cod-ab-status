@@ -50,7 +50,7 @@ for year in years:
     print(f"{len(plans)} plans fetched for {year}")
     all_rows.extend(build_rows(plans, year))
 
-with open(OUTPUT, "w", newline="", encoding="utf-8") as f:
+with open(OUTPUT, "w", newline="", encoding="utf-8-sig") as f:
     writer = csv.DictWriter(f, fieldnames=["iso3", "year", "type", "id"])
     writer.writeheader()
     writer.writerows(all_rows)
