@@ -529,22 +529,22 @@ export function loadData() {
   const planGroups: PlanGroup[] = [
     {
       key: "current_priority",
-      label: `${latestPlanYear} — HNRP / FA`,
+      label: `HNRP / FA (${latestPlanYear})`,
       countries: currentPriority.sort(byNextReview),
     },
     {
       key: "current_other",
-      label: `${latestPlanYear} — Other Plans`,
+      label: `Other Plans (${latestPlanYear})`,
       countries: currentOther.sort(byNextReview),
     },
     {
       key: "prior_only",
-      label: "Prior Year Plans",
+      label: `All Plans (2000-${Number(latestPlanYear) - 1})`,
       countries: priorOnly.sort(byNextReview),
     },
     {
       key: "gis_only",
-      label: "No Plans",
+      label: `No Plans (2000-${latestPlanYear})`,
       countries: [...gisOnly, ...m49Only].sort(byNextReview),
     },
   ];
