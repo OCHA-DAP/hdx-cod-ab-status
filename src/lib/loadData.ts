@@ -103,7 +103,7 @@ const STATUS_LABELS: Record<string, string> = {
   blocked: "Blocked",
 };
 
-const STATUS_ORDER = ["feedback", "processing", "initialized", "published", "blocked"];
+const STATUS_ORDER = ["initialized", "processing", "feedback", "published", "blocked"];
 
 function woStatusRank(s: string): number {
   if (s === "feedback") return 0;
