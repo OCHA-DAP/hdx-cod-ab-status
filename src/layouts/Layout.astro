@@ -24,13 +24,13 @@ const isCoverage = pathname.endsWith("/coverage");
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
-    <title>COD-AB Activity Tracker</title>
+    <title>COD-AB Status Dashboard</title>
     <ClientRouter />
   </head>
   <body>
     <div class="page">
       <header>
-        <h1>COD-AB Activity Tracker</h1>
+        <h1>COD-AB Status Dashboard</h1>
         <p class="update-schedule">Work order data updated weekly on Wednesdays</p>
         {syncedAtFormatted && <p class="last-synced">Last synced: {syncedAtFormatted}</p>}
       </header>
