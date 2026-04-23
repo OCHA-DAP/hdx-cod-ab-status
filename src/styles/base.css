@@ -182,6 +182,11 @@ tr.row-gap:hover td {
   color: #1e6b2e;
 }
 
+td a,
+td a:visited {
+  color: #1a1a1a;
+}
+
 .iso3 {
   font-size: 0.7rem;
   color: #999;

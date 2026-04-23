@@ -68,7 +68,14 @@ function ageTooltip(createdDate: string, publicationDate?: string): string | nul
           {group.rows.map((row) => (
             <tr>
               <td>
-                {row.name_en} <span class="iso3">{row.iso3}</span>
+                {row.hdxUrl ? (
+                  <a href={row.hdxUrl} target="_blank" rel="noopener">
+                    {row.name_en}
+                  </a>
+                ) : (
+                  row.name_en
+                )}{" "}
+                <span class="iso3">{row.iso3}</span>
               </td>
               <td style="text-align: center">
                 {row.update_type === "major" ? (

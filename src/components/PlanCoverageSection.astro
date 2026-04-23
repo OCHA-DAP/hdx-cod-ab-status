@@ -42,7 +42,14 @@ const { planCoverageByYear } = Astro.props;
           {pcg.rows.map((row) => (
             <tr class={!row.work_order_status && row.change_expected ? "row-gap" : ""}>
               <td>
-                {row.name_en} <span class="iso3">{row.iso3}</span>
+                {row.hdxUrl ? (
+                  <a href={row.hdxUrl} target="_blank" rel="noopener">
+                    {row.name_en}
+                  </a>
+                ) : (
+                  row.name_en
+                )}{" "}
+                <span class="iso3">{row.iso3}</span>
               </td>
               <td>{row.plan_types}</td>
               <td class={row.change_expected ? "flag-yes" : ""}>

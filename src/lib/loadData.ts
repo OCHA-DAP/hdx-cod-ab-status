@@ -30,6 +30,7 @@ export interface WorkOrderRow {
   publication_date: string;
   regional: string;
   update_type: string;
+  hdxUrl?: string;
 }
 
 export interface ScheduleGroup {
@@ -45,6 +46,7 @@ export interface PlanCoverageRow {
   work_order_status: string;
   planned_quarter: string;
   regional: string;
+  hdxUrl?: string;
 }
 
 export interface PlanCoverageYear {
@@ -67,6 +69,7 @@ export interface PlanCountry {
   review_overdue?: boolean;
   open_work_order_status?: string;
   review_gap?: boolean;
+  hdxUrl?: string;
 }
 
 export interface PlanGroup {
@@ -82,6 +85,7 @@ export interface ReviewGapRow {
   plan_type: string;
   office_type: string;
   regional: string;
+  hdxUrl?: string;
 }
 
 function parseCsv(text: string): Record<string, string>[] {
@@ -211,6 +215,23 @@ export function loadData() {
   const officeByIso3 = Object.fromEntries(offices.map((r) => [r.iso3, r]));
   const officeTypeByIso3 = Object.fromEntries(officeTypes.map((r) => [r.iso3, r.type]));
 
+  // Load HDX dataset presence list (may not exist until npm run fetch has been run)
+  const hdxIso3 = new Set<string>();
+  try {
+    const hdxText = readFileSync(join(apiDir, "hdx.csv"), "utf-8");
+    for (const r of parseCsv(hdxText)) {
+      if (r.iso3) hdxIso3.add(r.iso3);
+    }
+  } catch {
+    // file won't exist until npm run fetch has been run
+  }
+
+  function getHdxUrl(iso3: string): string | undefined {
+    return hdxIso3.has(iso3)
+      ? `https://data.humdata.org/dataset/cod-ab-${iso3.toLowerCase()}`
+      : undefined;
+  }
+
   // Plans grouped by year → iso3 (HRP and FA only, for plan coverage table)
   const coveragePlanTypes = new Set(["HRP", "HNRP", "FA"]);
   const plansByYear: Record<string, Record<string, { types: string[] }>> = {};
@@ -263,6 +284,7 @@ export function loadData() {
       publication_date: wo.publication_date ?? "",
       regional: office.regional ?? "",
       update_type: wo.update_type ?? "",
+      hdxUrl: getHdxUrl(wo.iso3),
     };
   }
 
@@ -292,6 +314,7 @@ export function loadData() {
         plan_type: plan ? plan.types.map((t) => t.toUpperCase()).join(" / ") : "",
         office_type: officeTypeByIso3[r.iso3] ?? "",
         regional: office.regional ?? "",
+        hdxUrl: getHdxUrl(r.iso3),
       };
     })
     .sort(
@@ -379,6 +402,7 @@ export function loadData() {
             work_order_status: wo?.status ?? "",
             planned_quarter: wo?.planned_quarter ?? "",
             regional: office.regional ?? "",
+            hdxUrl: getHdxUrl(iso3),
           };
         })
         .sort((a, b) => {
@@ -463,6 +487,7 @@ export function loadData() {
         office_type: officeTypeByIso3[iso3] ?? "",
         plan_types: currentTypes,
         inGis: gisIso3.has(iso3),
+        hdxUrl: getHdxUrl(iso3),
         ...getCountryExtras(iso3),
       };
       if (hasPriority) {
@@ -485,6 +510,7 @@ export function loadData() {
         plan_types: priorTypes,
         inGis: gisIso3.has(iso3),
         year_range,
+        hdxUrl: getHdxUrl(iso3),
         ...getCountryExtras(iso3),
       });
     }
@@ -503,6 +529,7 @@ export function loadData() {
         office_type: officeTypeByIso3[iso3] ?? "",
         plan_types: [],
         inGis: true,
+        hdxUrl: getHdxUrl(iso3),
         ...getCountryExtras(iso3),
       };
     })
@@ -519,6 +546,7 @@ export function loadData() {
         office_type: officeTypeByIso3[iso3] ?? "",
         plan_types: [],
         inGis: false,
+        hdxUrl: getHdxUrl(iso3),
         ...getCountryExtras(iso3),
       };
     })
