@@ -46,7 +46,7 @@ function ageTooltip(createdDate: string, publicationDate?: string): string | nul
       <table>
         <colgroup>
           <col style="width: 30%" />
-          <col style="width: 3%" />
+          <col style="width: 5.5em" />
           <col style="width: 15%" />
           <col style="width: 11%" />
           <col style="width: 15%" />
@@ -56,7 +56,7 @@ function ageTooltip(createdDate: string, publicationDate?: string): string | nul
         <thead>
           <tr>
             <th>Location</th>
-            <th title="Update type (major / minor)" />
+            <th title="Update type (major / minor)">Major</th>
             <th>Status</th>
             <th>Open For</th>
             <th>Plan Type</th>
@@ -70,7 +70,7 @@ function ageTooltip(createdDate: string, publicationDate?: string): string | nul
               <td>
                 {row.name_en} <span class="iso3">{row.iso3}</span>
               </td>
-              <td>
+              <td style="text-align: center">
                 {row.update_type === "major" ? (
                   <span class="upd-icon upd-major" title="Major update">
                     ●

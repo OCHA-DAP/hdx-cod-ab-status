@@ -66,6 +66,7 @@ export interface PlanCountry {
   next_review_relative?: string;
   review_overdue?: boolean;
   open_work_order_status?: string;
+  review_gap?: boolean;
 }
 
 export interface PlanGroup {
@@ -300,6 +301,8 @@ export function loadData() {
         a.name_en.localeCompare(b.name_en),
     );
 
+  const reviewGapIso3 = new Set(reviewGaps.map((r) => r.iso3));
+
   // Review gaps grouped by year for per-section access
   const reviewGapsByYear: Record<string, ReviewGapRow[]> = {};
   for (const r of reviewGaps) {
@@ -423,7 +426,10 @@ export function loadData() {
     const meta = codMetaByIso3[iso3];
     const reviewFields = meta ? computeNextReview(meta.anchor_date, meta.update_frequency) : {};
     const woStatus = openWoByIso3[iso3];
-    return woStatus ? { ...reviewFields, open_work_order_status: woStatus } : reviewFields;
+    const gap = reviewGapIso3.has(iso3) ? { review_gap: true } : {};
+    return woStatus
+      ? { ...reviewFields, open_work_order_status: woStatus, ...gap }
+      : { ...reviewFields, ...gap };
   }
 
   // Build plan groups from the plans data

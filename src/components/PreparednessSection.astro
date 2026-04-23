@@ -27,22 +27,24 @@ const { planGroups } = Astro.props;
         <table>
           {group.key === "prior-plans" ? (
             <colgroup>
-              <col style="width: 29%" />
-              <col style="width: 13%" />
-              <col style="width: 9%" />
+              <col style="width: 23%" />
+              <col style="width: 12%" />
               <col style="width: 11%" />
+              <col style="width: 10%" />
+              <col style="width: 12%" />
+              <col style="width: 7%" />
               <col style="width: 13%" />
-              <col style="width: 8%" />
-              <col style="width: 17%" />
+              <col style="width: 12%" />
             </colgroup>
           ) : (
             <colgroup>
-              <col style="width: 30%" />
-              <col style="width: 14%" />
-              <col style="width: 12%" />
-              <col style="width: 15%" />
+              <col style="width: 26%" />
+              <col style="width: 13%" />
+              <col style="width: 11%" />
+              <col style="width: 13%" />
               <col style="width: 8%" />
-              <col style="width: 21%" />
+              <col style="width: 16%" />
+              <col style="width: 13%" />
             </colgroup>
           )}
           <thead>
@@ -54,6 +56,7 @@ const { planGroups } = Astro.props;
               <th>Regional Office</th>
               <th>In GIS</th>
               <th>Next Review</th>
+              <th>Work Order</th>
             </tr>
           </thead>
           <tbody>
@@ -69,11 +72,17 @@ const { planGroups } = Astro.props;
                 <td class={row.inGis ? "flag-yes" : "flag-no"}>{row.inGis ? "Yes" : "No"}</td>
                 <td class={row.review_overdue ? "flag-no" : ""}>
                   <span title={row.next_review_date}>{row.next_review_relative ?? "—"}</span>
-                  {row.open_work_order_status && (
+                </td>
+                <td>
+                  {row.open_work_order_status ? (
                     <span class={`wo-badge wo-${row.open_work_order_status}`}>
                       {row.open_work_order_status.charAt(0).toUpperCase() +
                         row.open_work_order_status.slice(1)}
                     </span>
+                  ) : row.review_gap ? (
+                    <span class="wo-badge wo-gap">No WO</span>
+                  ) : (
+                    "—"
                   )}
                 </td>
               </tr>
@@ -127,5 +136,10 @@ const { planGroups } = Astro.props;
   .wo-badge.wo-blocked {
     background: #fee2e2;
     color: #b91c1c;
+  }
+
+  .wo-badge.wo-gap {
+    background: #ffedd5;
+    color: #9a3412;
   }
 </style>
