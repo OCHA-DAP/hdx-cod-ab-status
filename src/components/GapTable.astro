@@ -1,0 +1,65 @@
+---
+import type { ReviewGapRow } from "../lib/loadData.ts";
+import Term from "./Term.astro";
+
+interface Props {
+  rows: ReviewGapRow[];
+}
+
+const { rows } = Astro.props;
+---
+
+{
+  rows.length > 0 && (
+    <Fragment>
+      <h3 class="quarter-heading">
+        <Term term="gap-backlog">No Work Order</Term>
+      </h3>
+      <table>
+        <colgroup>
+          <col style="width: 30%" />
+          <col style="width: 22%" />
+          <col style="width: 18%" />
+          <col style="width: 30%" />
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Location</th>
+            <th>
+              <Term term="plan-type">Plan Type</Term>
+            </th>
+            <th>
+              <Term term="office-type">Office Type</Term>
+            </th>
+            <th>
+              <Term term="regional-office" align="right">
+                Regional Office
+              </Term>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr>
+              <td>
+                {row.hdxUrl ? (
+                  <a href={row.hdxUrl} target="_blank" rel="noopener">
+                    {row.name_en}
+                  </a>
+                ) : (
+                  row.name_en
+                )}{" "}
+                <span class="iso3">
+                  <Term term="iso3">{row.iso3}</Term>
+                </span>
+              </td>
+              <td>{row.plan_type || "—"}</td>
+              <td>{row.office_type || "—"}</td>
+              <td>{row.regional || "—"}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </Fragment>
+  )
+}

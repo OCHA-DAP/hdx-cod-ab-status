@@ -41,5 +41,6 @@ const syncedAtFormatted = data.syncedAt
     latestYear={data.latestYear}
     currentCycleWork={data.currentCycleWork}
     currentByQuarter={data.currentByQuarter}
+    gapRows={data.reviewGapsByYear[data.latestYear] ?? []}
   />
 </Layout>
