@@ -1,6 +1,8 @@
 ---
 import type { PlanCoverageYear } from "../lib/loadData.ts";
-import { statusClass, statusLabel } from "../lib/status.ts";
+import { statusClass, statusLabel, STATUS_TERMS } from "../lib/status.ts";
+import Term from "./Term.astro";
+import type { TermSlug } from "../lib/glossary.ts";
 
 interface Props {
   planCoverageByYear: PlanCoverageYear[];
@@ -13,10 +15,12 @@ const { planCoverageByYear } = Astro.props;
   planCoverageByYear.map((pcg) => (
     <section>
       <h2>
-        HRP / FA Plan Coverage — {pcg.year}
+        <Term term="plan-coverage">HRP / FA Plan Coverage</Term> — {pcg.year}
         {pcg.gapCount > 0 ? (
           <span class="count-chip warn">
-            {pcg.gapCount} gap{pcg.gapCount !== 1 ? "s" : ""}
+            <Term term="gap-coverage">
+              {pcg.gapCount} gap{pcg.gapCount !== 1 ? "s" : ""}
+            </Term>
           </span>
         ) : (
           <span class="count-chip done">Fully covered</span>
@@ -31,11 +35,23 @@ const { planCoverageByYear } = Astro.props;
         <thead>
           <tr>
             <th>Location</th>
-            <th>Plan Type</th>
-            <th>Change Expected</th>
-            <th>Work Order Status</th>
-            <th>Planned Quarter</th>
-            <th>Regional Office</th>
+            <th>
+              <Term term="plan-type">Plan Type</Term>
+            </th>
+            <th>
+              <Term term="change-expected">Change Expected</Term>
+            </th>
+            <th>
+              <Term term="pipeline">Work Order Status</Term>
+            </th>
+            <th>
+              <Term term="planned-quarter">Planned Quarter</Term>
+            </th>
+            <th>
+              <Term term="regional-office" align="right">
+                Regional Office
+              </Term>
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -57,11 +73,15 @@ const { planCoverageByYear } = Astro.props;
               </td>
               <td>
                 {row.work_order_status ? (
-                  <span class={`badge ${statusClass(row.work_order_status)}`}>
-                    {statusLabel(row.work_order_status)}
-                  </span>
+                  <Term term={STATUS_TERMS[row.work_order_status] as TermSlug}>
+                    <span class={`badge ${statusClass(row.work_order_status)}`}>
+                      {statusLabel(row.work_order_status)}
+                    </span>
+                  </Term>
                 ) : (
-                  <span class="badge s-none">No work order</span>
+                  <Term term="gap-coverage">
+                    <span class="badge s-none">No work order</span>
+                  </Term>
                 )}
               </td>
               <td>{row.planned_quarter || "—"}</td>

@@ -1,5 +1,7 @@
 ---
 import type { PlanGroup } from "../lib/loadData.ts";
+import Term from "./Term.astro";
+import type { TermSlug } from "../lib/glossary.ts";
 
 interface Props {
   planGroups: PlanGroup[];
@@ -108,13 +110,17 @@ function coverageClass(inGis: number, total: number): string {
       const inGis = group.countries.filter((c) => c.inGis).length;
       return (
         <a class="cycle-card" href={`#${group.key}`}>
-          <div class="cycle-label">{group.label}</div>
+          <div class="cycle-label">
+            <Term term={group.key as TermSlug}>{group.label}</Term>
+          </div>
           <div class={`stat-card ${coverageClass(inGis, total)}`}>
             <span class="stat-num">
               {inGis}
               <span class="stat-denom">/{total}</span>
             </span>
-            <span class="stat-lbl">In GIS</span>
+            <span class="stat-lbl">
+              <Term term="in-gis">In GIS</Term>
+            </span>
           </div>
         </a>
       );

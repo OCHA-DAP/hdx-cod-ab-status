@@ -1,6 +1,8 @@
 ---
 import type { YearStat } from "../lib/loadData.ts";
-import { statusClass } from "../lib/status.ts";
+import { statusClass, STATUS_TERMS } from "../lib/status.ts";
+import Term from "./Term.astro";
+import type { TermSlug } from "../lib/glossary.ts";
 
 interface Props {
   yearStats: YearStat[];
@@ -123,7 +125,13 @@ const { yearStats, latestYear } = Astro.props;
         <div class={`cycle-card ${isCurrent ? "current" : "backlog-card"}`}>
           <div class="cycle-header">
             <span class="cycle-year">{ys.year}</span>
-            <span class="cycle-tag">{isCurrent ? "Current cycle" : "Backlog"}</span>
+            <span class="cycle-tag">
+              {isCurrent ? (
+                <Term term="current-cycle">Current cycle</Term>
+              ) : (
+                <Term term="backlog">Backlog</Term>
+              )}
+            </span>
             <span class="cycle-total">
               {ys.pipeline.reduce((sum, item) => sum + item.count, 0) + ys.gapCount} total
             </span>
@@ -132,13 +140,17 @@ const { yearStats, latestYear } = Astro.props;
             {ys.pipeline.map((item) => (
               <div class={`stat-card ${statusClass(item.status)}`}>
                 <span class="stat-num">{item.count}</span>
-                <span class="stat-lbl">{item.label}</span>
+                <span class="stat-lbl">
+                  <Term term={STATUS_TERMS[item.status] as TermSlug}>{item.label}</Term>
+                </span>
               </div>
             ))}
             {ys.gapCount > 0 && (
               <div class="stat-card s-gap">
                 <span class="stat-num">{ys.gapCount}</span>
-                <span class="stat-lbl">No Work Order</span>
+                <span class="stat-lbl">
+                  <Term term="gap-backlog">No Work Order</Term>
+                </span>
               </div>
             )}
           </div>

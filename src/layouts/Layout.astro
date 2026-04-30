@@ -1,5 +1,6 @@
 ---
 import { ClientRouter } from "astro:transitions";
+import Term from "../components/Term.astro";
 import "../styles/base.css";
 
 interface Props {
@@ -30,16 +31,19 @@ const isCoverage = pathname.endsWith("/coverage");
   <body>
     <div class="page">
       <header>
-        <h1>COD-AB Status Dashboard</h1>
-        <p class="update-schedule">Work order data updated weekly on Wednesdays</p>
+        <h1><Term term="cod-ab">COD-AB</Term> Status Dashboard</h1>
+        <p class="update-schedule">
+          <Term term="work-order">Work order</Term> data updated weekly on Wednesdays
+        </p>
         {syncedAtFormatted && <p class="last-synced">Last synced: {syncedAtFormatted}</p>}
       </header>
 
       <nav class="tab-bar">
         <a href={base} class:list={["tab-btn", { active: !isCoverage }]}>
           <span class="tab-left">
-            <span class="tab-title">Work Orders</span>
-            <span class="tab-desc">Pipeline &amp; status tracking</span>
+            <span class="tab-title"><Term term="work-order">Work Orders</Term></span>
+            <span class="tab-desc"><Term term="pipeline">Pipeline</Term> &amp; status tracking</span
+            >
           </span>
           <span class="tab-count">{openTotal}<span class="tab-denom"> open</span></span>
         </a>
@@ -81,7 +85,6 @@ const isCoverage = pathname.endsWith("/coverage");
     </div>
   </body>
 </html>
-
 
 <script>
   function updateActiveTabs() {

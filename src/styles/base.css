@@ -214,3 +214,79 @@ td a:visited {
   color: #888;
   margin: 0;
 }
+
+/* ── Glossary tooltips ──────────────────────────────────────── */
+.term {
+  display: inline-block;
+  position: relative;
+  cursor: help;
+  border-bottom: 1px dotted currentColor;
+  outline: none;
+  vertical-align: baseline;
+}
+
+/* Pills (badges) already have their own visual identity — drop the underline. */
+.term:has(.badge),
+.term:has(.wo-badge) {
+  border-bottom: none;
+}
+
+.term-tooltip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  z-index: 50;
+  width: max-content;
+  max-width: 280px;
+  padding: 0.5rem 0.7rem;
+  background: #1f2937;
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 400;
+  font-family: system-ui, sans-serif;
+  text-transform: none;
+  letter-spacing: normal;
+  line-height: 1.4;
+  border-radius: 4px;
+  white-space: normal;
+  text-align: left;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.1s,
+    visibility 0.1s;
+  pointer-events: none;
+}
+
+.term-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 1rem;
+  border: 5px solid transparent;
+  border-top-color: #1f2937;
+}
+
+.term.term-right .term-tooltip {
+  left: auto;
+  right: 0;
+}
+
+.term.term-right .term-tooltip::after {
+  left: auto;
+  right: 1rem;
+}
+
+.term:hover .term-tooltip,
+.term:focus .term-tooltip,
+.term:focus-within .term-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Allow tooltip to escape table cells (overflow:hidden is for ellipsis on long text). */
+th:has(.term),
+td:has(.term) {
+  overflow: visible;
+}

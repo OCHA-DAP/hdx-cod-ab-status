@@ -1,5 +1,6 @@
 ---
 import type { ReviewGapRow, ScheduleGroup } from "../lib/loadData.ts";
+import Term from "./Term.astro";
 import WorkOrderTable from "./WorkOrderTable.astro";
 
 interface Props {
@@ -14,7 +15,8 @@ const { year, backlogCount, groups, gapRows } = Astro.props;
 
 <section>
   <h2>
-    {year} Backlog
+    {year}
+    <Term term="backlog">Backlog</Term>
     <span class={`count-chip ${backlogCount === 0 && gapRows.length === 0 ? "done" : "warn"}`}>
       {
         backlogCount === 0 && gapRows.length === 0
@@ -31,7 +33,9 @@ const { year, backlogCount, groups, gapRows } = Astro.props;
   {
     gapRows.length > 0 && (
       <Fragment>
-        <h3 class="quarter-heading">No Work Order</h3>
+        <h3 class="quarter-heading">
+          <Term term="gap-backlog">No Work Order</Term>
+        </h3>
         <table>
           <colgroup>
             <col style="width: 30%" />
@@ -42,9 +46,17 @@ const { year, backlogCount, groups, gapRows } = Astro.props;
           <thead>
             <tr>
               <th>Location</th>
-              <th>Plan Type</th>
-              <th>Office Type</th>
-              <th>Regional Office</th>
+              <th>
+                <Term term="plan-type">Plan Type</Term>
+              </th>
+              <th>
+                <Term term="office-type">Office Type</Term>
+              </th>
+              <th>
+                <Term term="regional-office" align="right">
+                  Regional Office
+                </Term>
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -58,7 +70,9 @@ const { year, backlogCount, groups, gapRows } = Astro.props;
                   ) : (
                     row.name_en
                   )}{" "}
-                  <span class="iso3">{row.iso3}</span>
+                  <span class="iso3">
+                    <Term term="iso3">{row.iso3}</Term>
+                  </span>
                 </td>
                 <td>{row.plan_type || "—"}</td>
                 <td>{row.office_type || "—"}</td>

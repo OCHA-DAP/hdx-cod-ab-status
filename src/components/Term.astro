@@ -1,0 +1,24 @@
+---
+import { GLOSSARY, type TermSlug } from "../lib/glossary";
+
+interface Props {
+  term: TermSlug;
+  align?: "left" | "right";
+}
+
+const { term, align = "left" } = Astro.props;
+const entry = GLOSSARY[term];
+---
+
+{
+  entry ? (
+    <span class:list={["term", { "term-right": align === "right" }]} tabindex="0">
+      <slot />
+      <span class="term-tooltip" role="tooltip">
+        {entry.definition}
+      </span>
+    </span>
+  ) : (
+    <slot />
+  )
+}

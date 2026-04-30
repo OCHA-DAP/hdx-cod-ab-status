@@ -15,6 +15,14 @@ export const STATUS_LABELS: Record<string, string> = {
   blocked: "Blocked",
 };
 
+export const STATUS_TERMS: Record<string, string> = {
+  published: "status-published",
+  processing: "status-processing",
+  feedback: "status-feedback",
+  initialized: "status-initialized",
+  blocked: "status-blocked",
+};
+
 export function statusLabel(status: string): string {
   return STATUS_LABELS[status] ?? status;
 }

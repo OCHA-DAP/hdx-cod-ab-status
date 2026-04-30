@@ -1,6 +1,8 @@
 ---
 import type { ScheduleGroup } from "../lib/loadData.ts";
-import { statusClass, statusLabel } from "../lib/status.ts";
+import { statusClass, statusLabel, STATUS_TERMS } from "../lib/status.ts";
+import Term from "./Term.astro";
+import type { TermSlug } from "../lib/glossary.ts";
 
 interface Props {
   groups: ScheduleGroup[];
@@ -56,12 +58,26 @@ function ageTooltip(createdDate: string, publicationDate?: string): string | nul
         <thead>
           <tr>
             <th>Location</th>
-            <th title="Update type (major / minor)">Major</th>
-            <th>Status</th>
-            <th>Open For</th>
-            <th>Plan Type</th>
-            <th>Office Type</th>
-            <th>Regional Office</th>
+            <th>
+              <Term term="major-minor">Major</Term>
+            </th>
+            <th>
+              <Term term="pipeline">Status</Term>
+            </th>
+            <th>
+              <Term term="open-for">Open For</Term>
+            </th>
+            <th>
+              <Term term="plan-type">Plan Type</Term>
+            </th>
+            <th>
+              <Term term="office-type">Office Type</Term>
+            </th>
+            <th>
+              <Term term="regional-office" align="right">
+                Regional Office
+              </Term>
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -79,19 +95,17 @@ function ageTooltip(createdDate: string, publicationDate?: string): string | nul
               </td>
               <td style="text-align: center">
                 {row.update_type === "major" ? (
-                  <span class="upd-icon upd-major" title="Major update">
-                    ●
-                  </span>
+                  <span class="upd-icon upd-major">●</span>
                 ) : row.update_type === "minor" ? (
-                  <span class="upd-icon upd-minor" title="Minor update">
-                    ○
-                  </span>
+                  <span class="upd-icon upd-minor">○</span>
                 ) : null}
               </td>
               <td>
-                <span class={`badge ${statusClass(row.work_order_status)}`}>
-                  {statusLabel(row.work_order_status)}
-                </span>
+                <Term term={STATUS_TERMS[row.work_order_status] as TermSlug}>
+                  <span class={`badge ${statusClass(row.work_order_status)}`}>
+                    {statusLabel(row.work_order_status)}
+                  </span>
+                </Term>
               </td>
               <td>
                 {(() => {

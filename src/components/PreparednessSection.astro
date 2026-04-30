@@ -1,5 +1,7 @@
 ---
 import type { PlanGroup } from "../lib/loadData.ts";
+import Term from "./Term.astro";
+import type { TermSlug } from "../lib/glossary.ts";
 
 interface Props {
   planGroups: PlanGroup[];
@@ -12,7 +14,7 @@ const { planGroups } = Astro.props;
   planGroups.map((group) => (
     <section id={group.key}>
       <h2>
-        {group.label}
+        <Term term={group.key as TermSlug}>{group.label}</Term>
         {(() => {
           const missing = group.countries.filter((c) => !c.inGis).length;
           return missing > 0 ? (
@@ -50,13 +52,27 @@ const { planGroups } = Astro.props;
           <thead>
             <tr>
               <th>Location</th>
-              <th>Plan Types</th>
+              <th>
+                <Term term="plan-type">Plan Types</Term>
+              </th>
               {group.key === "prior-plans" && <th>Years</th>}
-              <th>Office Type</th>
-              <th>Regional Office</th>
-              <th>In GIS</th>
-              <th>Next Review</th>
-              <th>Work Order</th>
+              <th>
+                <Term term="office-type">Office Type</Term>
+              </th>
+              <th>
+                <Term term="regional-office">Regional Office</Term>
+              </th>
+              <th>
+                <Term term="in-gis">In GIS</Term>
+              </th>
+              <th>
+                <Term term="next-review">Next Review</Term>
+              </th>
+              <th>
+                <Term term="work-order" align="right">
+                  Work Order
+                </Term>
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -82,12 +98,16 @@ const { planGroups } = Astro.props;
                 </td>
                 <td>
                   {row.open_work_order_status ? (
-                    <span class={`wo-badge wo-${row.open_work_order_status}`}>
-                      {row.open_work_order_status.charAt(0).toUpperCase() +
-                        row.open_work_order_status.slice(1)}
-                    </span>
+                    <Term term={`status-${row.open_work_order_status}` as TermSlug} align="right">
+                      <span class={`wo-badge wo-${row.open_work_order_status}`}>
+                        {row.open_work_order_status.charAt(0).toUpperCase() +
+                          row.open_work_order_status.slice(1)}
+                      </span>
+                    </Term>
                   ) : row.review_gap ? (
-                    <span class="wo-badge wo-gap">No WO</span>
+                    <Term term="gap-coverage" align="right">
+                      <span class="wo-badge wo-gap">No WO</span>
+                    </Term>
                   ) : (
                     "—"
                   )}

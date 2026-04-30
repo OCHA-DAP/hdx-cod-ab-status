@@ -1,5 +1,6 @@
 ---
 import type { ScheduleGroup, WorkOrderRow } from "../lib/loadData.ts";
+import Term from "./Term.astro";
 import WorkOrderTable from "./WorkOrderTable.astro";
 
 interface Props {
@@ -13,7 +14,8 @@ const { latestYear, currentCycleWork, currentByQuarter } = Astro.props;
 
 <section>
   <h2>
-    {latestYear} Work Orders
+    {latestYear}
+    <Term term="work-order">Work Orders</Term>
     {
       (() => {
         const remaining = currentCycleWork.filter(
@@ -28,7 +30,9 @@ const { latestYear, currentCycleWork, currentByQuarter } = Astro.props;
     }
   </h2>
   <p class="section-desc">
-    All work orders in the {latestYear} cycle, grouped by planned delivery quarter.
+    All work orders in the {latestYear}
+    <Term term="cycle">cycle</Term>, grouped by{" "}
+    <Term term="planned-quarter">planned delivery quarter</Term>.
   </p>
 
   {
