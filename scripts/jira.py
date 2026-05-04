@@ -134,7 +134,15 @@ def issue_to_row(issue: dict) -> dict | None:
     quarter = labels.get("quarter", "")
     update_type = labels.get("update", "")
 
-    if not (YEAR_RE.match(year) and UPDATE_RE.match(update_type)):
+    if not YEAR_RE.match(year):
+        print(f"Skipping {issue['key']}: missing/invalid year label '{year}'", file=sys.stderr)
+        return None
+    # update_type is unset for backlog items (work not yet scoped); required otherwise
+    if jira_status != "Backlog" and not UPDATE_RE.match(update_type):
+        print(
+            f"Skipping {issue['key']}: missing/invalid update label '{update_type}'",
+            file=sys.stderr,
+        )
         return None
     if quarter and not QUARTER_RE.match(quarter):
         print(

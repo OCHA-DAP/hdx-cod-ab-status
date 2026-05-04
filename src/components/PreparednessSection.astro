@@ -2,7 +2,7 @@
 import type { PlanGroup } from "../lib/loadData.ts";
 import Term from "./Term.astro";
 import type { TermSlug } from "../lib/glossary.ts";
-import { statusLabel } from "../lib/status.ts";
+import { statusClass, statusLabel } from "../lib/status.ts";
 
 interface Props {
   planGroups: PlanGroup[];
@@ -100,7 +100,7 @@ const { planGroups } = Astro.props;
                 <td>
                   {row.open_work_order_status ? (
                     <Term term={`status-${row.open_work_order_status}` as TermSlug} align="right">
-                      <span class={`wo-badge wo-${row.open_work_order_status}`}>
+                      <span class={`badge ${statusClass(row.open_work_order_status)}`}>
                         {statusLabel(row.open_work_order_status)}
                       </span>
                     </Term>
@@ -129,40 +129,4 @@ const { planGroups } = Astro.props;
     font-weight: 600;
   }
 
-  .wo-badge {
-    display: inline-block;
-    margin-left: 0.4em;
-    padding: 0.1em 0.45em;
-    border-radius: 3px;
-    font-size: 0.75em;
-    font-weight: 600;
-    vertical-align: middle;
-    background: #e5e7eb;
-    color: #374151;
-  }
-
-  .wo-badge.wo-in_progress {
-    background: #dbeafe;
-    color: #1d4ed8;
-  }
-
-  .wo-badge.wo-blocked {
-    background: #fef9c3;
-    color: #92400e;
-  }
-
-  .wo-badge.wo-selected {
-    background: #e0f2fe;
-    color: #075985;
-  }
-
-  .wo-badge.wo-backlog {
-    background: #f3f4f6;
-    color: #6b7280;
-  }
-
-  .wo-badge.wo-cancelled {
-    background: #fee2e2;
-    color: #b91c1c;
-  }
 </style>

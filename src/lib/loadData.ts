@@ -509,7 +509,9 @@ export function loadData() {
     planCoverageByYear,
     planGroups,
     total: allRows.length,
-    openTotal: allRows.filter((r) => r.work_order_status !== "done").length,
+    openTotal: allRows.filter(
+      (r) => !["done", "backlog", "cancelled"].includes(r.work_order_status),
+    ).length,
     lastUpdatedAt,
   };
 }

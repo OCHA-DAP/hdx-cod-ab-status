@@ -31,10 +31,8 @@ const isCoverage = pathname.endsWith("/coverage");
   <body>
     <div class="page">
       <header>
-        <h1><Term term="cod-ab">COD-AB</Term> Status Dashboard</h1>
-        <p class="update-schedule">
-          <Term term="work-order">Work order</Term> data updated weekly on Wednesdays
-        </p>
+        <h1>COD-AB Status Dashboard</h1>
+        <p class="update-schedule">Data updated daily at 06:00 UTC</p>
         {lastUpdatedFormatted && <p class="last-updated">Last updated: {lastUpdatedFormatted}</p>}
       </header>
 

@@ -12,7 +12,7 @@ export const STATUS_LABELS: Record<string, string> = {
   done: "Done",
   in_progress: "In Progress",
   blocked: "Blocked",
-  selected: "Selected for Development",
+  selected: "Ready",
   backlog: "Backlog",
   cancelled: "Cancelled",
 };
