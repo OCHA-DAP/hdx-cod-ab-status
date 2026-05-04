@@ -96,21 +96,21 @@ function parseCsv(text: string): Record<string, string>[] {
 }
 
 const STATUS_LABELS: Record<string, string> = {
-  published: "Published",
-  processing: "Processing",
-  feedback: "Feedback",
-  initialized: "Initialized",
+  done: "Done",
+  in_progress: "In Progress",
   blocked: "Blocked",
+  backlog: "Backlog",
+  cancelled: "Cancelled",
 };
 
-const STATUS_ORDER = ["initialized", "processing", "feedback", "published", "blocked"];
+const STATUS_ORDER = ["backlog", "in_progress", "blocked", "done", "cancelled"];
 
 function woStatusRank(s: string): number {
-  if (s === "feedback") return 0;
-  if (s === "processing") return 1;
-  if (s === "initialized") return 2;
-  if (s === "published") return 3;
-  if (s === "blocked") return 4;
+  if (s === "blocked") return 0;
+  if (s === "in_progress") return 1;
+  if (s === "backlog") return 2;
+  if (s === "done") return 3;
+  if (s === "cancelled") return 4;
   return 5;
 }
 
@@ -178,16 +178,14 @@ function groupByQuarter(rows: WorkOrderRow[]): ScheduleGroup[] {
 
 export function loadData() {
   const dataDir = join(process.cwd(), "public/data");
-  const apiDir = join(process.cwd(), "public/api");
-  const [reviewText, workText] = ["reviews.csv", "work.csv"].map((f) =>
-    readFileSync(join(dataDir, f), "utf-8"),
-  );
-  const [m49Text, planText, officesText, officeTypesText] = [
+  const [reviewText, workText, m49Text, planText, officesText, officeTypesText] = [
+    "reviews.csv",
+    "work.csv",
     "m49.csv",
     "plans.csv",
     "regions.csv",
     "offices.csv",
-  ].map((f) => readFileSync(join(apiDir, f), "utf-8"));
+  ].map((f) => readFileSync(join(dataDir, f), "utf-8"));
 
   let syncedAt: string | null = null;
   try {
@@ -218,7 +216,7 @@ export function loadData() {
   // Load HDX dataset presence list (may not exist until npm run fetch has been run)
   const hdxIso3 = new Set<string>();
   try {
-    const hdxText = readFileSync(join(apiDir, "hdx.csv"), "utf-8");
+    const hdxText = readFileSync(join(dataDir, "hdx.csv"), "utf-8");
     for (const r of parseCsv(hdxText)) {
       if (r.iso3) hdxIso3.add(r.iso3);
     }
@@ -290,10 +288,10 @@ export function loadData() {
 
   const allRows = workOrders.map(buildRow);
 
-  // Most active open (non-published) work order status per iso3
+  // Most active open (non-done) work order status per iso3
   const openWoByIso3: Record<string, string> = {};
   for (const row of allRows) {
-    if (row.work_order_status === "published") continue;
+    if (row.work_order_status === "done") continue;
     const existing = openWoByIso3[row.iso3];
     if (!existing || woStatusRank(row.work_order_status) < woStatusRank(existing)) {
       openWoByIso3[row.iso3] = row.work_order_status;
@@ -420,13 +418,13 @@ export function loadData() {
     });
 
   // Load gis.unocha.org catalog country list
-  const gisText = readFileSync(join(apiDir, "gis.csv"), "utf-8");
+  const gisText = readFileSync(join(dataDir, "gis.csv"), "utf-8");
   const gisIso3 = new Set(parseCsv(gisText).map((r) => r.iso3));
 
   // Load COD Global Metadata (may not exist until npm run fetch has been run)
   const codMetaByIso3: Record<string, { anchor_date: string; update_frequency: number }> = {};
   try {
-    const codMetaText = readFileSync(join(apiDir, "cod_metadata.csv"), "utf-8");
+    const codMetaText = readFileSync(join(dataDir, "cod_metadata.csv"), "utf-8");
     for (const r of parseCsv(codMetaText)) {
       if (!r.country_iso3 || !r.update_frequency) continue;
       const anchor = [r.date_reviewed, r.date_updated, r.date_valid_from]
@@ -595,7 +593,7 @@ export function loadData() {
     reviewGaps,
     reviewGapsByYear,
     total: allRows.length,
-    openTotal: allRows.filter((r) => r.work_order_status !== "published").length,
+    openTotal: allRows.filter((r) => r.work_order_status !== "done").length,
     syncedAt,
   };
 }

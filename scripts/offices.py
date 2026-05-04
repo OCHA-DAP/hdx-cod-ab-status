@@ -8,7 +8,7 @@ offices.py
 
 Fetches OCHA country offices (CO), humanitarian advisory teams (HAT),
 and regional offices (RO) from the OCHA PowerBI dashboard and writes
-public/api/offices.csv.
+public/data/offices.csv.
 
 Output CSV columns:  iso3, type   (type is "CO", "HAT", or "RO")
 
@@ -17,7 +17,7 @@ Also verifies the CO list against the Jan 2026 OCHA org chart PDF.
 Usage:
     python3 scripts/offices.py
 
-Requires: public/api/m49.csv (run m49.py first if missing)
+Requires: public/data/m49.csv (run m49.py first if missing)
 
 Dashboard: https://app.powerbi.com/view?r=eyJrIjoiZTNmYjk4ZDUtZDFlYi00MzllLTk5YTAtY2NiNTQ5MmRmZWY0IiwidCI6IjBmOWUzNWRiLTU0NGYtNGY2MC1iZGNjLTVlYTQxNmU2ZGM3MCIsImMiOjh9
 """
@@ -29,7 +29,7 @@ from pathlib import Path
 
 import requests
 
-OUTPUT_DIR = Path(__file__).parent.parent / "public" / "api"
+OUTPUT_DIR = Path(__file__).parent.parent / "public" / "data"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 OUTPUT_CSV = OUTPUT_DIR / "offices.csv"
 M49_CSV = OUTPUT_DIR / "m49.csv"

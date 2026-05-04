@@ -19,7 +19,7 @@ if dotenv.exists():
             k, _, v = line.partition("=")
             os.environ.setdefault(k.strip(), v.strip())
 
-OUTPUT_DIR = Path(__file__).parent.parent / "public" / "api"
+OUTPUT_DIR = Path(__file__).parent.parent / "public" / "data"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 OUTPUT = OUTPUT_DIR / "cod_metadata.csv"
 

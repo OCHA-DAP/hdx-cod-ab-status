@@ -8,7 +8,7 @@ from pathlib import Path
 
 import requests
 
-OUTPUT_DIR = Path(__file__).parent.parent / "public" / "api"
+OUTPUT_DIR = Path(__file__).parent.parent / "public" / "data"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 OUTPUT = OUTPUT_DIR / "hdx.csv"
 

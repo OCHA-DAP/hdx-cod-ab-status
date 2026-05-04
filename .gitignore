@@ -1,4 +1,4 @@
-.claude/settings.local.json
+.claude
 node_modules
 
 # Output
@@ -15,4 +15,4 @@ Thumbs.db
 !.env.example
 !.env.test
 
-public/api
+public/data
