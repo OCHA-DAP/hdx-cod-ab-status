@@ -3,6 +3,8 @@ import { join } from "node:path";
 
 import Papa from "papaparse";
 
+import { STATUS_LABELS, STATUS_ORDER, statusRank } from "./status.ts";
+
 export interface PipelineCount {
   status: string;
   label: string;
@@ -13,7 +15,6 @@ export interface YearStat {
   year: string;
   pipeline: PipelineCount[];
   total: number;
-  gapCount: number;
 }
 
 export interface WorkOrderRow {
@@ -23,7 +24,6 @@ export interface WorkOrderRow {
   work_order_id: string;
   work_order_status: string;
   plan_type: string;
-  change_expected: boolean;
   office_type: string;
   planned_quarter: string;
   created_date: string;
@@ -42,7 +42,6 @@ export interface PlanCoverageRow {
   iso3: string;
   name_en: string;
   plan_types: string;
-  change_expected: boolean;
   work_order_status: string;
   planned_quarter: string;
   regional: string;
@@ -52,7 +51,6 @@ export interface PlanCoverageRow {
 export interface PlanCoverageYear {
   year: string;
   rows: PlanCoverageRow[];
-  gapCount: number;
 }
 
 export interface PlanCountry {
@@ -68,7 +66,6 @@ export interface PlanCountry {
   next_review_relative?: string;
   review_overdue?: boolean;
   open_work_order_status?: string;
-  review_gap?: boolean;
   hdxUrl?: string;
 }
 
@@ -78,40 +75,11 @@ export interface PlanGroup {
   countries: PlanCountry[];
 }
 
-export interface ReviewGapRow {
-  iso3: string;
-  name_en: string;
-  year: string;
-  plan_type: string;
-  office_type: string;
-  regional: string;
-  hdxUrl?: string;
-}
-
 function parseCsv(text: string): Record<string, string>[] {
   return Papa.parse<Record<string, string>>(text, {
     header: true,
     skipEmptyLines: true,
   }).data;
-}
-
-const STATUS_LABELS: Record<string, string> = {
-  done: "Done",
-  in_progress: "In Progress",
-  blocked: "Blocked",
-  backlog: "Backlog",
-  cancelled: "Cancelled",
-};
-
-const STATUS_ORDER = ["backlog", "in_progress", "blocked", "done", "cancelled"];
-
-function woStatusRank(s: string): number {
-  if (s === "blocked") return 0;
-  if (s === "in_progress") return 1;
-  if (s === "backlog") return 2;
-  if (s === "done") return 3;
-  if (s === "cancelled") return 4;
-  return 5;
 }
 
 function woPlanTypeRank(s: string): number {
@@ -178,8 +146,7 @@ function groupByQuarter(rows: WorkOrderRow[]): ScheduleGroup[] {
 
 export function loadData() {
   const dataDir = join(process.cwd(), "public/data");
-  const [reviewText, workText, m49Text, planText, officesText, officeTypesText] = [
-    "reviews.csv",
+  const [workText, m49Text, planText, officesText, officeTypesText] = [
     "work.csv",
     "m49.csv",
     "plans.csv",
@@ -187,16 +154,15 @@ export function loadData() {
     "offices.csv",
   ].map((f) => readFileSync(join(dataDir, f), "utf-8"));
 
-  let syncedAt: string | null = null;
+  let lastUpdatedAt: string | null = null;
   try {
-    syncedAt = readFileSync(join(dataDir, "last_synced.txt"), "utf-8").trim();
+    lastUpdatedAt = readFileSync(join(dataDir, "last_updated.txt"), "utf-8").trim();
   } catch {
-    // file won't exist until sync-data.sh has been run
+    // file won't exist until npm run fetch has been run
   }
 
   const m49 = parseCsv(m49Text);
   const plans = parseCsv(planText);
-  const reviews = parseCsv(reviewText);
   const workOrders = parseCsv(workText);
   const offices = parseCsv(officesText);
   const officeTypes = parseCsv(officeTypesText);
@@ -204,12 +170,6 @@ export function loadData() {
   const m49ByIso3 = Object.fromEntries(
     m49.map((r) => [r.iso_alpha3_code, { ...r, name_en: r.country_or_area }]),
   );
-  // Key reviews by "iso3:year" for multi-year support, fall back to iso3 only
-  const reviewByKey: Record<string, Record<string, string>> = {};
-  for (const r of reviews) {
-    reviewByKey[`${r.iso3}:${r.year}`] = r;
-    reviewByKey[r.iso3] = r; // fallback (last write wins — fine while all same year)
-  }
   const officeByIso3 = Object.fromEntries(offices.map((r) => [r.iso3, r]));
   const officeTypeByIso3 = Object.fromEntries(officeTypes.map((r) => [r.iso3, r.type]));
 
@@ -265,7 +225,6 @@ export function loadData() {
 
   function buildRow(wo: Record<string, string>): WorkOrderRow {
     const geo = m49ByIso3[wo.iso3] ?? {};
-    const review = reviewByKey[`${wo.iso3}:${wo.year}`] ?? reviewByKey[wo.iso3] ?? {};
     const office = officeByIso3[wo.iso3] ?? {};
     const plan = plansByYear[wo.year]?.[wo.iso3];
     return {
@@ -275,7 +234,6 @@ export function loadData() {
       work_order_id: wo.id ?? "",
       work_order_status: wo.status ?? "",
       plan_type: plan ? plan.types.map((t) => t.toUpperCase()).join(" / ") : "",
-      change_expected: review.change_expected === "TRUE",
       office_type: officeTypeByIso3[wo.iso3] ?? "",
       planned_quarter: wo.planned_quarter ?? "",
       created_date: wo.creation_date ?? "",
@@ -293,42 +251,9 @@ export function loadData() {
   for (const row of allRows) {
     if (row.work_order_status === "done") continue;
     const existing = openWoByIso3[row.iso3];
-    if (!existing || woStatusRank(row.work_order_status) < woStatusRank(existing)) {
+    if (!existing || statusRank(row.work_order_status) < statusRank(existing)) {
       openWoByIso3[row.iso3] = row.work_order_status;
     }
-  }
-
-  const coveredByWorkOrder = new Set(workOrders.map((wo) => `${wo.iso3}:${wo.year}`));
-  const reviewGaps: ReviewGapRow[] = reviews
-    .filter((r) => r.change_expected === "TRUE" && !coveredByWorkOrder.has(`${r.iso3}:${r.year}`))
-    .map((r) => {
-      const geo = m49ByIso3[r.iso3] ?? {};
-      const office = officeByIso3[r.iso3] ?? {};
-      const plan = plansByYear[r.year]?.[r.iso3];
-      return {
-        iso3: r.iso3,
-        name_en: geo.name_en ?? r.iso3,
-        year: r.year,
-        plan_type: plan ? plan.types.map((t) => t.toUpperCase()).join(" / ") : "",
-        office_type: officeTypeByIso3[r.iso3] ?? "",
-        regional: office.regional ?? "",
-        hdxUrl: getHdxUrl(r.iso3),
-      };
-    })
-    .sort(
-      (a, b) =>
-        woPlanTypeRank(a.plan_type) - woPlanTypeRank(b.plan_type) ||
-        woOfficeTypeRank(a.office_type) - woOfficeTypeRank(b.office_type) ||
-        a.name_en.localeCompare(b.name_en),
-    );
-
-  const reviewGapIso3 = new Set(reviewGaps.map((r) => r.iso3));
-
-  // Review gaps grouped by year for per-section access
-  const reviewGapsByYear: Record<string, ReviewGapRow[]> = {};
-  for (const r of reviewGaps) {
-    if (!reviewGapsByYear[r.year]) reviewGapsByYear[r.year] = [];
-    reviewGapsByYear[r.year].push(r);
   }
 
   // Determine cycle years (sorted ascending)
@@ -350,7 +275,6 @@ export function loadData() {
       year,
       pipeline,
       total: yearRows.length,
-      gapCount: (reviewGapsByYear[year] ?? []).length,
     };
   });
 
@@ -359,7 +283,7 @@ export function loadData() {
     .filter((r) => r.year !== latestYear)
     .sort(
       (a, b) =>
-        woStatusRank(a.work_order_status) - woStatusRank(b.work_order_status) ||
+        statusRank(a.work_order_status) - statusRank(b.work_order_status) ||
         woPlanTypeRank(a.plan_type) - woPlanTypeRank(b.plan_type) ||
         woOfficeTypeRank(a.office_type) - woOfficeTypeRank(b.office_type) ||
         (a.publication_date || a.created_date || "").localeCompare(
@@ -373,7 +297,7 @@ export function loadData() {
     .filter((r) => r.year === latestYear)
     .sort(
       (a, b) =>
-        woStatusRank(a.work_order_status) - woStatusRank(b.work_order_status) ||
+        statusRank(a.work_order_status) - statusRank(b.work_order_status) ||
         woPlanTypeRank(a.plan_type) - woPlanTypeRank(b.plan_type) ||
         woOfficeTypeRank(a.office_type) - woOfficeTypeRank(b.office_type) ||
         (a.publication_date || a.created_date || "").localeCompare(
@@ -389,14 +313,12 @@ export function loadData() {
       const rows: PlanCoverageRow[] = Object.entries(byIso3)
         .map(([iso3, plan]) => {
           const geo = m49ByIso3[iso3] ?? {};
-          const review = reviewByKey[`${iso3}:${year}`] ?? reviewByKey[iso3] ?? {};
           const office = officeByIso3[iso3] ?? {};
           const wo = latestWorkByIso3Year[`${iso3}:${year}`];
           return {
             iso3,
             name_en: geo.name_en ?? iso3,
             plan_types: plan.types.map((t) => t.toUpperCase()).join(" / "),
-            change_expected: review.change_expected === "TRUE",
             work_order_status: wo?.status ?? "",
             planned_quarter: wo?.planned_quarter ?? "",
             regional: office.regional ?? "",
@@ -408,12 +330,11 @@ export function loadData() {
           const tComp = typeRank(a.plan_types) - typeRank(b.plan_types);
           return tComp !== 0
             ? tComp
-            : woStatusRank(a.work_order_status) - woStatusRank(b.work_order_status);
+            : statusRank(a.work_order_status) - statusRank(b.work_order_status);
         });
       return {
         year,
         rows,
-        gapCount: rows.filter((r) => !r.work_order_status && r.change_expected).length,
       };
     });
 
@@ -448,10 +369,7 @@ export function loadData() {
     const meta = codMetaByIso3[iso3];
     const reviewFields = meta ? computeNextReview(meta.anchor_date, meta.update_frequency) : {};
     const woStatus = openWoByIso3[iso3];
-    const gap = reviewGapIso3.has(iso3) ? { review_gap: true } : {};
-    return woStatus
-      ? { ...reviewFields, open_work_order_status: woStatus, ...gap }
-      : { ...reviewFields, ...gap };
+    return woStatus ? { ...reviewFields, open_work_order_status: woStatus } : reviewFields;
   }
 
   // Build plan groups from the plans data
@@ -590,10 +508,8 @@ export function loadData() {
     currentByQuarter,
     planCoverageByYear,
     planGroups,
-    reviewGaps,
-    reviewGapsByYear,
     total: allRows.length,
     openTotal: allRows.filter((r) => r.work_order_status !== "done").length,
-    syncedAt,
+    lastUpdatedAt,
   };
 }

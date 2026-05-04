@@ -83,23 +83,27 @@ const { yearStats, latestYear } = Astro.props;
     color: #444;
   }
 
-  .stat-card.s-published {
+  .stat-card.s-done {
     background: #c6efce;
     border-color: #93d09a;
   }
-  .stat-card.s-progress {
+  .stat-card.s-in_progress {
     background: #fff2cc;
     border-color: #f5d262;
   }
-  .stat-card.s-awaiting {
+  .stat-card.s-blocked {
     background: #fce4d6;
     border-color: #f4b183;
   }
-  .stat-card.s-initialized {
+  .stat-card.s-selected {
     background: #e0f2fe;
     border-color: #7dd3fc;
   }
-  .stat-card.s-hold {
+  .stat-card.s-backlog {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+  }
+  .stat-card.s-cancelled {
     background: #ffc7ce;
     border-color: #f09098;
   }
@@ -110,10 +114,6 @@ const { yearStats, latestYear } = Astro.props;
     border: 1px solid #c0cade;
     border-radius: 999px;
     padding: 0.15rem 0.6rem;
-  }
-  .stat-card.s-gap {
-    background: #f3e8ff;
-    border-color: #c084fc;
   }
 </style>
 
@@ -133,7 +133,7 @@ const { yearStats, latestYear } = Astro.props;
               )}
             </span>
             <span class="cycle-total">
-              {ys.pipeline.reduce((sum, item) => sum + item.count, 0) + ys.gapCount} total
+              {ys.pipeline.reduce((sum, item) => sum + item.count, 0)} total
             </span>
           </div>
           <div class="stat-grid">
@@ -145,14 +145,6 @@ const { yearStats, latestYear } = Astro.props;
                 </span>
               </div>
             ))}
-            {ys.gapCount > 0 && (
-              <div class="stat-card s-gap">
-                <span class="stat-num">{ys.gapCount}</span>
-                <span class="stat-lbl">
-                  <Term term="gap-backlog">No Work Order</Term>
-                </span>
-              </div>
-            )}
           </div>
         </div>
       );

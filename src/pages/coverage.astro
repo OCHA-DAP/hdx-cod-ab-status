@@ -10,8 +10,8 @@ const totalInGis = data.planGroups.reduce(
   0,
 );
 const totalLocations = data.planGroups.reduce((sum, g) => sum + g.countries.length, 0);
-const syncedAtFormatted = data.syncedAt
-  ? new Date(data.syncedAt).toLocaleDateString("en-GB", {
+const lastUpdatedFormatted = data.lastUpdatedAt
+  ? new Date(data.lastUpdatedAt).toLocaleDateString("en-GB", {
       day: "numeric",
       month: "long",
       year: "numeric",
@@ -21,7 +21,7 @@ const syncedAtFormatted = data.syncedAt
 ---
 
 <Layout
-  syncedAtFormatted={syncedAtFormatted}
+  lastUpdatedFormatted={lastUpdatedFormatted}
   openTotal={data.openTotal}
   totalInGis={totalInGis}
   totalLocations={totalLocations}

@@ -16,19 +16,9 @@ const { planCoverageByYear } = Astro.props;
     <section>
       <h2>
         <Term term="plan-coverage">HRP / FA Plan Coverage</Term> — {pcg.year}
-        {pcg.gapCount > 0 ? (
-          <span class="count-chip warn">
-            <Term term="gap-coverage">
-              {pcg.gapCount} gap{pcg.gapCount !== 1 ? "s" : ""}
-            </Term>
-          </span>
-        ) : (
-          <span class="count-chip done">Fully covered</span>
-        )}
       </h2>
       <p class="section-desc">
-        All locations with an active HRP or Flash Appeal plan for {pcg.year}. Highlighted rows have
-        no work order assigned.
+        All locations with an active HRP or Flash Appeal plan for {pcg.year}.
       </p>
 
       <table>
@@ -37,9 +27,6 @@ const { planCoverageByYear } = Astro.props;
             <th>Location</th>
             <th>
               <Term term="plan-type">Plan Type</Term>
-            </th>
-            <th>
-              <Term term="change-expected">Change Expected</Term>
             </th>
             <th>
               <Term term="pipeline">Work Order Status</Term>
@@ -56,7 +43,7 @@ const { planCoverageByYear } = Astro.props;
         </thead>
         <tbody>
           {pcg.rows.map((row) => (
-            <tr class={!row.work_order_status && row.change_expected ? "row-gap" : ""}>
+            <tr>
               <td>
                 {row.hdxUrl ? (
                   <a href={row.hdxUrl} target="_blank" rel="noopener">
@@ -68,9 +55,6 @@ const { planCoverageByYear } = Astro.props;
                 <span class="iso3">{row.iso3}</span>
               </td>
               <td>{row.plan_types}</td>
-              <td class={row.change_expected ? "flag-yes" : ""}>
-                {row.change_expected ? "Yes" : "No"}
-              </td>
               <td>
                 {row.work_order_status ? (
                   <Term term={STATUS_TERMS[row.work_order_status] as TermSlug}>
@@ -79,9 +63,7 @@ const { planCoverageByYear } = Astro.props;
                     </span>
                   </Term>
                 ) : (
-                  <Term term="gap-coverage">
-                    <span class="badge s-none">No work order</span>
-                  </Term>
+                  <span class="badge s-none">No work order</span>
                 )}
               </td>
               <td>{row.planned_quarter || "—"}</td>

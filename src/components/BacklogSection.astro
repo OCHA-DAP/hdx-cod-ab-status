@@ -1,6 +1,5 @@
 ---
-import type { ReviewGapRow, ScheduleGroup } from "../lib/loadData.ts";
-import GapTable from "./GapTable.astro";
+import type { ScheduleGroup } from "../lib/loadData.ts";
 import Term from "./Term.astro";
 import WorkOrderTable from "./WorkOrderTable.astro";
 
@@ -8,33 +7,25 @@ interface Props {
   year: string;
   backlogCount: number;
   groups: ScheduleGroup[];
-  gapRows: ReviewGapRow[];
 }
 
-const { year, backlogCount, groups, gapRows } = Astro.props;
+const { year, backlogCount, groups } = Astro.props;
 ---
 
 <section>
   <h2>
     {year}
     <Term term="backlog">Backlog</Term>
-    <span class={`count-chip ${backlogCount === 0 && gapRows.length === 0 ? "done" : "warn"}`}>
-      {
-        backlogCount === 0 && gapRows.length === 0
-          ? "All published"
-          : `${backlogCount + gapRows.length} remaining`
-      }
+    <span class={`count-chip ${backlogCount === 0 ? "done" : "warn"}`}>
+      {backlogCount === 0 ? "All done" : `${backlogCount} remaining`}
     </span>
   </h2>
-  <p class="section-desc">
-    Incomplete items from the {year} cycle — work orders still in progress and locations expecting changes
-    with no work order yet.
-  </p>
-  {backlogCount > 0 && <WorkOrderTable groups={groups} />}
-  <GapTable rows={gapRows} />
+  <p class="section-desc">Incomplete work orders from the {year} cycle.</p>
   {
-    backlogCount === 0 && gapRows.length === 0 && (
-      <p class="empty">All {year} work orders have been published.</p>
+    backlogCount > 0 ? (
+      <WorkOrderTable groups={groups} />
+    ) : (
+      <p class="empty">All {year} work orders are done.</p>
     )
   }
 </section>

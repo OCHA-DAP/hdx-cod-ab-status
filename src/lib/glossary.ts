@@ -94,7 +94,7 @@ export const GLOSSARY = {
   pipeline: {
     label: "Pipeline",
     definition:
-      "End-to-end flow of a work order from creation (Initialized) through Published — the sequence of statuses a work order passes through.",
+      "End-to-end flow of a work order from Backlog through Done — the sequence of statuses a work order passes through.",
   },
   cycle: {
     label: "Cycle",
@@ -107,6 +107,10 @@ export const GLOSSARY = {
   backlog: {
     label: "Backlog",
     definition: "Incomplete work orders carried over from prior cycles.",
+  },
+  selected: {
+    label: "Selected for Development",
+    definition: "Work order has been opened and is queued for work.",
   },
   "planned-quarter": {
     label: "Planned Quarter",
@@ -127,50 +131,40 @@ export const GLOSSARY = {
       "Type of humanitarian plan active for the location: HRP (Humanitarian Response Plan), HNRP (Humanitarian Needs and Response Plan), FA (Flash Appeal), or REG (Regional Refugee Response Plan).",
   },
 
-  "status-initialized": {
-    label: "Initialized",
-    definition: "Work order has been created but no work has begun yet.",
+  "status-backlog": {
+    label: "Backlog",
+    definition:
+      "Location is expected to need a boundary update this cycle, but no work order has been opened yet.",
   },
-  "status-processing": {
-    label: "Processing",
+  "status-selected": {
+    label: "Selected for Development",
+    definition: "Work order has been opened and is queued; work has not begun yet.",
+  },
+  "status-in_progress": {
+    label: "In Progress",
     definition: "Work is actively underway on the boundaries.",
-  },
-  "status-feedback": {
-    label: "Feedback",
-    definition: "Awaiting feedback or review from stakeholders.",
-  },
-  "status-published": {
-    label: "Published",
-    definition: "Boundaries have been finalized and are available in the ArcGIS catalog.",
   },
   "status-blocked": {
     label: "Blocked",
-    definition: "Work is paused due to a blocking issue.",
+    definition: "Work is paused awaiting feedback or unblocking from stakeholders.",
+  },
+  "status-done": {
+    label: "Done",
+    definition: "Boundaries have been finalized and are available in the ArcGIS catalog.",
+  },
+  "status-cancelled": {
+    label: "Cancelled",
+    definition: "Work order has been cancelled and will not be completed.",
   },
 
   "in-gis": {
     label: "In GIS",
     definition: "Country whose admin boundaries are published in OCHA's ArcGIS catalog.",
   },
-  "change-expected": {
-    label: "Change Expected",
-    definition:
-      "The review schedule indicates an update to admin boundaries is anticipated this cycle.",
-  },
   "next-review": {
     label: "Next Review",
     definition:
       "Date the next data review or update is due, computed from COD metadata and update frequency.",
-  },
-  "gap-backlog": {
-    label: "No Work Order",
-    definition:
-      "A location flagged 'change expected' for the cycle year but with no work order created yet to capture that change.",
-  },
-  "gap-coverage": {
-    label: "No WO",
-    definition:
-      "A location with an active humanitarian plan but no admin boundaries published in OCHA's GIS system.",
   },
   "plan-coverage": {
     label: "Plan Coverage",

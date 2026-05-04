@@ -4,13 +4,13 @@ import Term from "../components/Term.astro";
 import "../styles/base.css";
 
 interface Props {
-  syncedAtFormatted: string | null;
+  lastUpdatedFormatted: string | null;
   openTotal: number;
   totalInGis: number;
   totalLocations: number;
 }
 
-const { syncedAtFormatted, openTotal, totalInGis, totalLocations } = Astro.props;
+const { lastUpdatedFormatted, openTotal, totalInGis, totalLocations } = Astro.props;
 
 const base = import.meta.env.BASE_URL.endsWith("/")
   ? import.meta.env.BASE_URL
@@ -35,7 +35,7 @@ const isCoverage = pathname.endsWith("/coverage");
         <p class="update-schedule">
           <Term term="work-order">Work order</Term> data updated weekly on Wednesdays
         </p>
-        {syncedAtFormatted && <p class="last-synced">Last synced: {syncedAtFormatted}</p>}
+        {lastUpdatedFormatted && <p class="last-updated">Last updated: {lastUpdatedFormatted}</p>}
       </header>
 
       <nav class="tab-bar">
@@ -64,9 +64,8 @@ const isCoverage = pathname.endsWith("/coverage");
       <footer>
         <span>Download:</span>
         <span class="footer-group">
-          <span class="group-label">SharePoint</span>
+          <span class="group-label">JIRA</span>
           <a href={`${base}data/work.csv`}>Work orders</a>
-          <a href={`${base}data/reviews.csv`}>Reviews</a>
         </span>
         <span class="footer-group">
           <span class="group-label">ArcGIS</span>

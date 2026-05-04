@@ -29,6 +29,8 @@ jobs:
         env:
           ARCGIS_USERNAME: ${{ secrets.ARCGIS_USERNAME }}
           ARCGIS_PASSWORD: ${{ secrets.ARCGIS_PASSWORD }}
+          JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
       - run: npm run build
         env:
           BASE_PATH: ${{ steps.pages.outputs.base_path }}

@@ -28,7 +28,7 @@ h1 {
   margin: 0;
 }
 
-.last-synced {
+.last-updated {
   font-size: 0.75rem;
   color: #999;
   margin: 0.2rem 0 0;
@@ -136,23 +136,27 @@ tr.row-gap:hover td {
   white-space: nowrap;
 }
 
-.badge.s-published {
+.badge.s-done {
   background: #c6efce;
   color: #1e6b2e;
 }
-.badge.s-progress {
+.badge.s-in_progress {
   background: #fff2cc;
   color: #7a5a00;
 }
-.badge.s-awaiting {
+.badge.s-blocked {
   background: #fce4d6;
   color: #8b3a0e;
 }
-.badge.s-initialized {
+.badge.s-selected {
   background: #e0f2fe;
   color: #075985;
 }
-.badge.s-hold {
+.badge.s-backlog {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+.badge.s-cancelled {
   background: #ffc7ce;
   color: #8b0c1a;
 }

@@ -1,6 +1,5 @@
 ---
-import type { ReviewGapRow, ScheduleGroup, WorkOrderRow } from "../lib/loadData.ts";
-import GapTable from "./GapTable.astro";
+import type { ScheduleGroup, WorkOrderRow } from "../lib/loadData.ts";
 import Term from "./Term.astro";
 import WorkOrderTable from "./WorkOrderTable.astro";
 
@@ -8,20 +7,18 @@ interface Props {
   latestYear: string;
   currentCycleWork: WorkOrderRow[];
   currentByQuarter: ScheduleGroup[];
-  gapRows: ReviewGapRow[];
 }
 
-const { latestYear, currentCycleWork, currentByQuarter, gapRows } = Astro.props;
-const remaining = currentCycleWork.filter((r) => r.work_order_status !== "published").length;
-const totalRemaining = remaining + gapRows.length;
+const { latestYear, currentCycleWork, currentByQuarter } = Astro.props;
+const remaining = currentCycleWork.filter((r) => r.work_order_status !== "done").length;
 ---
 
 <section>
   <h2>
     {latestYear}
     <Term term="work-order">Work Orders</Term>
-    <span class={`count-chip ${totalRemaining === 0 ? "done" : ""}`}>
-      {totalRemaining === 0 ? "All published" : `${totalRemaining} remaining`}
+    <span class={`count-chip ${remaining === 0 ? "done" : ""}`}>
+      {remaining === 0 ? "All done" : `${remaining} remaining`}
     </span>
   </h2>
   <p class="section-desc">
@@ -37,5 +34,4 @@ const totalRemaining = remaining + gapRows.length;
       <WorkOrderTable groups={currentByQuarter} />
     )
   }
-  <GapTable rows={gapRows} />
 </section>

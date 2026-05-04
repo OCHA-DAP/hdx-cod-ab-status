@@ -11,8 +11,7 @@ npm run preview     # Preview production build
 npm run check       # Astro type checking
 npm run lint        # Prettier format check + ESLint
 npm run format      # Format with Prettier
-npm run sync        # Copy reviews.csv from OneDrive (work.csv now comes from JIRA via fetch)
-npm run fetch       # Run all Python data fetch scripts (uses python3)
+npm run fetch       # Run all Python data fetch scripts (uses python3) and write public/data/last_updated.txt
 npm run fetch:local # Same as fetch but uses uv (local dev with virtualenv)
 npm run update      # Upgrade npm dependencies
 ```
@@ -29,7 +28,7 @@ This is an **Astro** application (part of OCHA-DAP's HDX COD AB Status tooling) 
 
 **Data loading:** `src/lib/loadData.ts` handles all CSV parsing and joins (uses PapaParse). This is the main business logic file.
 
-**Status model:** `src/lib/status.ts` defines badge styles and labels for the five work order statuses (mirrored from JIRA): Backlog, In Progress, Blocked, Done, Cancelled.
+**Status model:** `src/lib/status.ts` defines badge styles and labels for the six work order statuses (mirrored from JIRA): Backlog, Selected for Development, In Progress, Blocked, Done, Cancelled. "Backlog" represents a country expected to need a boundary update with no work order opened yet; "Selected for Development" represents an opened work order awaiting work.
 
 **Static assets:** `public/` directory for static files served as-is.
 
@@ -54,10 +53,7 @@ This is an **Astro** application (part of OCHA-DAP's HDX COD AB Status tooling) 
 
 ```
 JIRA (humanitarian.atlassian.net, project COD, epic COD-51)
-  └─ scripts/jira.py ──► public/data/work.csv      (work orders)
-
-SharePoint (OneDrive)
-  └─ scripts/sync_data.py ──► public/data/reviews.csv  (review schedule)
+  └─ scripts/jira.py ──► public/data/work.csv      (work orders, all statuses)
 
 External APIs / ArcGIS
   └─ scripts/*.py ──► public/data/m49.csv           (UN country codes)
@@ -67,6 +63,8 @@ External APIs / ArcGIS
                   ──► public/data/offices.csv       (OCHA offices)
                   ──► public/data/cod_metadata.csv  (COD review dates)
                   ──► public/data/hdx.csv           (HDX dataset presence)
+
+npm run fetch ──► public/data/last_updated.txt     (UTC timestamp written after all scripts succeed)
 
 src/lib/loadData.ts   ← reads + joins all of the above at build time
         │
