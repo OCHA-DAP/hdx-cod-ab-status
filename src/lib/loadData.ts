@@ -204,17 +204,6 @@ export function loadData() {
     }
   }
 
-  // Flat plan lookup by iso3 (all years merged, HRP and FA only) for work order enrichment
-  const planByIso3: Record<string, { types: string[] }> = {};
-  for (const p of plans) {
-    if (!coveragePlanTypes.has(p.type)) continue;
-    if (!planByIso3[p.iso3]) {
-      planByIso3[p.iso3] = { types: [p.type] };
-    } else {
-      if (!planByIso3[p.iso3].types.includes(p.type)) planByIso3[p.iso3].types.push(p.type);
-    }
-  }
-
   // Most recent work order per iso3+year pair (for plan coverage matching)
   const latestWorkByIso3Year: Record<string, Record<string, string>> = {};
   for (const wo of workOrders) {
@@ -226,14 +215,20 @@ export function loadData() {
   function buildRow(wo: Record<string, string>): WorkOrderRow {
     const geo = m49ByIso3[wo.iso3] ?? {};
     const office = officeByIso3[wo.iso3] ?? {};
-    const plan = plansByYear[wo.year]?.[wo.iso3];
+    const planTypes: string[] = [];
+    for (const [year, byIso3] of Object.entries(plansByYear)) {
+      if (year < wo.year) continue;
+      const plan = byIso3[wo.iso3];
+      if (!plan) continue;
+      for (const t of plan.types) if (!planTypes.includes(t)) planTypes.push(t);
+    }
     return {
       iso3: wo.iso3,
       name_en: geo.name_en ?? wo.iso3,
       year: wo.year,
       work_order_id: wo.id ?? "",
       work_order_status: wo.status ?? "",
-      plan_type: plan ? plan.types.map((t) => t.toUpperCase()).join(" / ") : "",
+      plan_type: planTypes.map((t) => t.toUpperCase()).join(" / "),
       office_type: officeTypeByIso3[wo.iso3] ?? "",
       planned_quarter: wo.planned_quarter ?? "",
       created_date: wo.creation_date ?? "",
