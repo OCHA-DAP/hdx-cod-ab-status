@@ -18,6 +18,20 @@ npm run update      # Upgrade npm dependencies
 
 There is no test suite configured in this project.
 
+## UI verification
+
+Use `playwright-cli` to verify UI changes against the dev server. It uses a persistent browser session — open the browser once, then issue commands against it.
+
+```bash
+npm run dev                                              # start dev server first (default port 4321)
+npx playwright-cli open http://localhost:4321            # open browser and navigate to app
+npx playwright-cli screenshot --filename snap.png        # screenshot current viewport
+npx playwright-cli screenshot --filename snap.png --full-page  # full-page screenshot
+npx playwright-cli goto http://localhost:4321            # navigate in existing session
+npx playwright-cli snapshot                              # capture accessibility snapshot (element refs)
+npx playwright-cli close                                 # close browser session
+```
+
 ## Architecture
 
 This is an **Astro** application (part of OCHA-DAP's HDX COD AB Status tooling) built with TypeScript in strict mode.
