@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code when working with code in this repository.
 
+See [DESIGN.md](./DESIGN.md) for brand tokens and visual conventions. Follow it for all styling work.
+
 ## Commands
 
 ```bash

@@ -1,14 +1,16 @@
 body {
   margin: 0;
-  background: #f7f8fa;
-  font-family: system-ui, sans-serif;
-  color: #1a1a1a;
+  background: #f4f4f4;
+  font-family: "Source Sans Pro", system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #333333;
 }
 
 .page {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 1.5rem 1.5rem 3rem;
+  padding: 35px 35px 3rem;
 }
 
 /* ── Header ─────────────────────────────────────────────────── */
@@ -17,41 +19,42 @@ header {
 }
 
 h1 {
-  font-size: 1.5rem;
+  font-size: 28px;
   font-weight: 700;
   margin: 0 0 0.2rem;
 }
 
 .subtitle {
-  font-size: 0.85rem;
-  color: #666;
+  font-size: 13px;
+  color: #888888;
   margin: 0;
 }
 
 .last-updated {
-  font-size: 0.75rem;
-  color: #999;
+  font-size: 12px;
+  color: #888888;
   margin: 0.2rem 0 0;
 }
 
 .update-schedule {
-  font-size: 0.75rem;
-  color: #999;
+  font-size: 12px;
+  color: #888888;
   margin: 0.1rem 0 0;
 }
 
 /* ── Sections ───────────────────────────────────────────────── */
 section {
   background: #fff;
-  border: 1px solid #e2e5ea;
-  border-radius: 6px;
+  border: 1px solid #cccccc;
+  border-radius: 3px;
   padding: 1.25rem 1.5rem;
   margin-bottom: 1.25rem;
 }
 
 section h2 {
-  font-size: 1rem;
-  font-weight: 700;
+  font-size: 20px;
+  font-weight: 600;
+  color: #007ce0;
   margin: 0 0 0.35rem;
   display: flex;
   align-items: center;
@@ -59,8 +62,8 @@ section h2 {
 }
 
 .section-desc {
-  font-size: 0.82rem;
-  color: #666;
+  font-size: 13px;
+  color: #888888;
   margin: 0 0 1rem;
 }
 
@@ -68,14 +71,14 @@ section h2 {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.8rem;
+  font-size: 12px;
   font-weight: 700;
-  color: #555;
+  color: #888888;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.03em;
   margin: 1.25rem 0 0.4rem;
   padding-bottom: 0.25rem;
-  border-bottom: 1px solid #e2e5ea;
+  border-bottom: 1px solid #cccccc;
 }
 
 section > h3.quarter-heading:first-of-type {
@@ -91,7 +94,7 @@ table {
   width: 100%;
   table-layout: fixed;
   border-collapse: collapse;
-  font-size: 0.82rem;
+  font-size: 13px;
   margin-bottom: 0.25rem;
 }
 
@@ -99,24 +102,25 @@ th,
 td {
   padding: 0.35rem 0.6rem;
   text-align: left;
-  border: 1px solid #e2e5ea;
+  border: 1px solid #cccccc;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 th {
-  background: #f0f2f5;
-  font-weight: 600;
-  font-size: 0.75rem;
+  background: #eeeeee;
+  font-weight: 700;
+  font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.03em;
+  font-feature-settings: "tnum";
   position: sticky;
   top: 0;
 }
 
 tr:hover td {
-  background: #f7f9fc;
+  background: #f4f4f4;
 }
 
 tr.row-gap td {
@@ -131,7 +135,7 @@ tr.row-gap:hover td {
   display: inline-block;
   padding: 0.15rem 0.5rem;
   border-radius: 999px;
-  font-size: 0.72rem;
+  font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -168,10 +172,10 @@ tr.row-gap:hover td {
 /* ── Chips, misc ─────────────────────────────────────────────── */
 .count-chip {
   display: inline-block;
-  background: #e8edf5;
-  color: #444;
+  background: #eeeeee;
+  color: #888888;
   border-radius: 999px;
-  font-size: 0.72rem;
+  font-size: 12px;
   font-weight: 700;
   padding: 0.1rem 0.55rem;
   vertical-align: middle;
@@ -188,24 +192,24 @@ tr.row-gap:hover td {
 
 td a,
 td a:visited {
-  color: #1a1a1a;
+  color: #333333;
 }
 
 .iso3 {
   font-size: 0.7rem;
-  color: #999;
+  color: #888888;
   margin-left: 0.25rem;
-  font-family: monospace;
+  font-family: ui-monospace, monospace;
 }
 
 .upd-icon {
   font-size: 0.6rem;
-  color: #999;
+  color: #888888;
 }
 
 .mono {
-  font-family: monospace;
-  font-size: 0.78rem;
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
 }
 
 .flag-yes {
@@ -214,8 +218,8 @@ td a:visited {
 }
 
 .empty {
-  font-size: 0.85rem;
-  color: #888;
+  font-size: 13px;
+  color: #888888;
   margin: 0;
 }
 
@@ -247,7 +251,7 @@ td a:visited {
   color: #fff;
   font-size: 0.78rem;
   font-weight: 400;
-  font-family: system-ui, sans-serif;
+  font-family: "Source Sans Pro", system-ui, sans-serif;
   text-transform: none;
   letter-spacing: normal;
   line-height: 1.4;
