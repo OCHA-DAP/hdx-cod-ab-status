@@ -93,28 +93,40 @@ def parse_labels(labels: list[str]) -> dict[str, str]:
 
 
 def parse_description_dates(adf: dict | None) -> dict[str, str]:
-    """Walk ADF JSON, pull '<bold prefix>: <value>' pairs from bullet items."""
+    """Walk ADF JSON, pull '<bold prefix>: <value>' pairs from bullet items
+    or from manually bullet-marked paragraph lines (split on hardBreak)."""
     out: dict[str, str] = {}
     if not adf:
         return out
+
+    def process_texts(texts: list[str]) -> None:
+        for i, text in enumerate(texts):
+            key = text.strip()
+            if key in DESCRIPTION_KEYS and i + 1 < len(texts):
+                value = texts[i + 1].strip()
+                if value == "—":
+                    value = ""
+                out[DESCRIPTION_KEYS[key]] = value
+
     for node in adf.get("content", []):
-        if node.get("type") != "bulletList":
-            continue
-        for item in node.get("content", []):
-            for para in item.get("content", []):
-                texts = [
-                    t.get("text", "")
-                    for t in para.get("content", [])
-                    if t.get("type") == "text"
-                ]
-                if len(texts) < 2:
-                    continue
-                key = texts[0].strip()
-                if key in DESCRIPTION_KEYS:
-                    value = texts[1].strip()
-                    if value == "—":
-                        value = ""
-                    out[DESCRIPTION_KEYS[key]] = value
+        if node.get("type") == "bulletList":
+            for item in node.get("content", []):
+                for para in item.get("content", []):
+                    texts = [
+                        t.get("text", "")
+                        for t in para.get("content", [])
+                        if t.get("type") == "text"
+                    ]
+                    process_texts(texts)
+        elif node.get("type") == "paragraph":
+            line: list[str] = []
+            for child in node.get("content", []):
+                if child.get("type") == "hardBreak":
+                    process_texts(line)
+                    line = []
+                elif child.get("type") == "text":
+                    line.append(child.get("text", ""))
+            process_texts(line)
     return out
 
 
