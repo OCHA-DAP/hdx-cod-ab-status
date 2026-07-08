@@ -60,7 +60,7 @@ export interface PlanCountry {
   office_type: string;
   plan_types: string[];
   inGis: boolean;
-  year_range?: string;
+  plan_years?: string[];
   next_review_date?: string;
   next_review_sort?: string;
   next_review_relative?: string;
@@ -70,7 +70,7 @@ export interface PlanCountry {
 }
 
 export interface PlanGroup {
-  key: "hnrp-fa" | "other-plans" | "prior-plans" | "no-plans";
+  key: "current-priority" | "prior-priority" | "current-other" | "prior-other" | "no-plans";
   label: string;
   countries: PlanCountry[];
 }
@@ -97,6 +97,42 @@ function woOfficeTypeRank(s: string): number {
   if (s === "HAT") return 1;
   if (s === "RO") return 2;
   return 3;
+}
+
+// Country's best-ever plan type outranks a lesser plan type from a more
+// recent year (mirrors hdx-boundaries-explorer's plan_status.py rank).
+function planTypeRank(t: string): number {
+  const upper = t.toUpperCase();
+  if (upper === "HNRP") return 0;
+  if (upper === "HRP") return 1;
+  if (upper === "FA") return 2;
+  if (upper === "REG") return 3;
+  return 4;
+}
+
+// Best (lowest-ranked) plan type across a country's plan years, tie-broken
+// by the most recent year achieving that rank. Pass excludeYear to search
+// prior years only.
+function bestPlanType(
+  byYear: Map<string, Set<string>>,
+  excludeYear?: string,
+): { rank: number; year: string; types: string[] } {
+  let bestRank = Infinity;
+  let bestYear = "";
+  for (const [year, types] of byYear) {
+    if (year === excludeYear) continue;
+    for (const t of types) {
+      const rank = planTypeRank(t);
+      if (rank < bestRank || (rank === bestRank && year > bestYear)) {
+        bestRank = rank;
+        bestYear = year;
+      }
+    }
+  }
+  const types = bestYear
+    ? [...(byYear.get(bestYear) ?? [])].filter((t) => planTypeRank(t) === bestRank)
+    : [];
+  return { rank: bestRank, year: bestYear, types };
 }
 
 function computeNextReview(
@@ -369,7 +405,6 @@ export function loadData() {
 
   // Build plan groups from the plans data
   const latestPlanYear = [...new Set(plans.map((p) => p.year))].sort().at(-1) ?? "";
-  const priorityTypes = new Set(["HRP", "HNRP", "FA"]);
 
   // iso3 → year → unique types[]
   const plansByIso3 = new Map<string, Map<string, Set<string>>>();
@@ -380,51 +415,79 @@ export function loadData() {
     byYear.get(p.year)!.add(p.type);
   }
 
+  const priorityTypes = new Set(["HRP", "HNRP", "FA"]);
+
   const currentPriority: PlanCountry[] = [];
   const currentOther: PlanCountry[] = [];
-  const priorOnly: PlanCountry[] = [];
+  const priorPriority: PlanCountry[] = [];
+  const priorOther: PlanCountry[] = [];
 
   for (const [iso3, byYear] of plansByIso3) {
     const geo = m49ByIso3[iso3] ?? {};
     const office = officeByIso3[iso3] ?? {};
     const currentTypes = [...(byYear.get(latestPlanYear) ?? [])];
-    const hasPriority = currentTypes.some((t) => priorityTypes.has(t));
 
+    let bucket: PlanCountry[];
+    let planTypes: string[];
+    let planYears: string[];
     if (currentTypes.length > 0) {
-      const country: PlanCountry = {
-        iso3,
-        name_en: geo.name_en ?? iso3,
-        regional: office.regional ?? "",
-        office_type: officeTypeByIso3[iso3] ?? "",
-        plan_types: currentTypes,
-        inGis: gisIso3.has(iso3),
-        hdxUrl: getHdxUrl(iso3),
-        ...getCountryExtras(iso3),
-      };
+      // An active plan this cycle takes priority over stale plan history,
+      // regardless of type — a country working on a current REG/Other plan
+      // is more relevant than one whose only priority plan is years old.
+      const hasPriority = currentTypes.some((t) => priorityTypes.has(t));
       if (hasPriority) {
-        currentPriority.push(country);
+        // Also surface the most recent prior year's plan type(s), if they
+        // differ from the current one, for context on how the country's
+        // plan classification has changed over time.
+        const priorYears = [...byYear.keys()].filter((y) => y !== latestPlanYear).sort();
+        const mostRecentPriorYear = priorYears.at(-1);
+        const priorTypes = mostRecentPriorYear
+          ? [...(byYear.get(mostRecentPriorYear) ?? [])].filter((t) => !currentTypes.includes(t))
+          : [];
+        bucket = currentPriority;
+        planTypes = [...currentTypes, ...priorTypes];
+        planYears = [
+          ...currentTypes.map(() => latestPlanYear),
+          ...priorTypes.map(() => mostRecentPriorYear!),
+        ];
       } else {
-        currentOther.push(country);
+        // Surface a genuinely better historical plan type alongside the
+        // current one (e.g. "Other / HRP"), so an old HNRP/HRP/FA isn't
+        // hidden just because this cycle's plan is a lesser type.
+        const currentBestRank = Math.min(...currentTypes.map(planTypeRank));
+        const prior = bestPlanType(byYear, latestPlanYear);
+        const hasBetterPrior = prior.year !== "" && prior.rank < currentBestRank;
+        const priorTypes = hasBetterPrior ? prior.types : [];
+        bucket = currentOther;
+        planTypes = [...currentTypes, ...priorTypes];
+        planYears = [
+          ...currentTypes.map(() => latestPlanYear),
+          ...priorTypes.map(() => prior.year),
+        ];
       }
     } else {
-      // Has plan in a prior year — use the most recent prior year's types
-      const priorYears = [...byYear.keys()].filter((y) => y !== latestPlanYear).sort();
-      const priorTypes = [...(byYear.get(priorYears.at(-1)!) ?? [])];
-      const minYear = priorYears[0];
-      const maxYear = priorYears.at(-1)!;
-      const year_range = minYear === maxYear ? minYear : `${minYear}–${maxYear}`;
-      priorOnly.push({
-        iso3,
-        name_en: geo.name_en ?? iso3,
-        regional: office.regional ?? "",
-        office_type: officeTypeByIso3[iso3] ?? "",
-        plan_types: priorTypes,
-        inGis: gisIso3.has(iso3),
-        year_range,
-        hdxUrl: getHdxUrl(iso3),
-        ...getCountryExtras(iso3),
-      });
+      // No plan this cycle — fall back to the best-ever plan type across
+      // prior years, tie-broken by the most recent year achieving it, so a
+      // country's old HNRP/HRP/FA still outranks another country's old
+      // REG/Other (mirrors hdx-boundaries-explorer's plan_status.py).
+      const best = bestPlanType(byYear);
+      const hasPriority = best.types.some((t) => priorityTypes.has(t));
+      bucket = hasPriority ? priorPriority : priorOther;
+      planTypes = best.types;
+      planYears = best.types.map(() => best.year);
     }
+
+    bucket.push({
+      iso3,
+      name_en: geo.name_en ?? iso3,
+      regional: office.regional ?? "",
+      office_type: officeTypeByIso3[iso3] ?? "",
+      plan_types: planTypes,
+      inGis: gisIso3.has(iso3),
+      plan_years: planYears,
+      hdxUrl: getHdxUrl(iso3),
+      ...getCountryExtras(iso3),
+    });
   }
 
   const allPlanIso3 = new Set(plansByIso3.keys());
@@ -473,19 +536,24 @@ export function loadData() {
   };
   const planGroups: PlanGroup[] = [
     {
-      key: "hnrp-fa",
-      label: `HNRP / FA (${latestPlanYear})`,
+      key: "current-priority",
+      label: `HNRP / HRP / FA (${latestPlanYear})`,
       countries: currentPriority.sort(byNextReview),
     },
     {
-      key: "other-plans",
+      key: "current-other",
       label: `Other Plans (${latestPlanYear})`,
       countries: currentOther.sort(byNextReview),
     },
     {
-      key: "prior-plans",
-      label: `Prior Plans (2000-${Number(latestPlanYear) - 1})`,
-      countries: priorOnly.sort(byNextReview),
+      key: "prior-priority",
+      label: "HNRP / HRP / FA (Prior Years)",
+      countries: priorPriority.sort(byNextReview),
+    },
+    {
+      key: "prior-other",
+      label: "Other Plans (Prior Years)",
+      countries: priorOther.sort(byNextReview),
     },
     {
       key: "no-plans",

@@ -50,14 +50,15 @@ export const GLOSSARY = {
     definition:
       "Regional Refugee Response Plan — multi-country plan addressing refugee outflows from a shared crisis.",
   },
-  "other-plans": {
-    label: "Other Plans",
-    definition: "Active humanitarian plans that are not an HRP or Flash Appeal.",
-  },
-  "prior-plans": {
-    label: "Prior Plans",
+  "current-other": {
+    label: "Other Plans (Current)",
     definition:
-      "Locations covered by humanitarian plans in earlier years but not the current cycle.",
+      "Locations with an active plan in the current cycle that is not an HNRP, HRP, or Flash Appeal — typically a Regional Response Plan (REG) or another lower-priority type (CAP, SRP, CIAA, Other).",
+  },
+  "prior-other": {
+    label: "Other Plans (Prior Years)",
+    definition:
+      "Locations with no plan in the current cycle whose most recent prior plan was not an HNRP, HRP, or Flash Appeal.",
   },
   "no-plans": {
     label: "No Plans",
@@ -170,10 +171,15 @@ export const GLOSSARY = {
     label: "Plan Coverage",
     definition: "Locations covered by HRP or Flash Appeal plans in a given year.",
   },
-  "hnrp-fa": {
-    label: "HNRP / FA",
+  "current-priority": {
+    label: "HNRP / HRP / FA (Current)",
     definition:
-      "Locations with an active Humanitarian Needs and Response Plan (HNRP) or Flash Appeal (FA) for the current cycle — the priority group for boundary readiness.",
+      "Locations with an active Humanitarian Needs and Response Plan (HNRP), Humanitarian Response Plan (HRP), or Flash Appeal (FA) in the current cycle — the priority group for boundary readiness.",
+  },
+  "prior-priority": {
+    label: "HNRP / HRP / FA (Prior Years)",
+    definition:
+      "Locations with no plan in the current cycle whose most recent prior plan was an HNRP, HRP, or Flash Appeal — still a higher priority for boundary readiness than a current-cycle Other Plan.",
   },
 } as const satisfies Record<string, GlossaryEntry>;
 

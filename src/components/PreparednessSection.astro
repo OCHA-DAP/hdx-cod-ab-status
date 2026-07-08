@@ -28,35 +28,23 @@ const { planGroups } = Astro.props;
 
       {group.countries.length > 0 ? (
         <table>
-          {group.key === "prior-plans" ? (
-            <colgroup>
-              <col style="width: 23%" />
-              <col style="width: 12%" />
-              <col style="width: 11%" />
-              <col style="width: 10%" />
-              <col style="width: 12%" />
-              <col style="width: 7%" />
-              <col style="width: 13%" />
-              <col style="width: 12%" />
-            </colgroup>
-          ) : (
-            <colgroup>
-              <col style="width: 26%" />
-              <col style="width: 13%" />
-              <col style="width: 11%" />
-              <col style="width: 13%" />
-              <col style="width: 8%" />
-              <col style="width: 16%" />
-              <col style="width: 13%" />
-            </colgroup>
-          )}
+          <colgroup>
+            <col style="width: 23%" />
+            <col style="width: 12%" />
+            <col style="width: 10%" />
+            <col style="width: 11%" />
+            <col style="width: 12%" />
+            <col style="width: 7%" />
+            <col style="width: 13%" />
+            <col style="width: 12%" />
+          </colgroup>
           <thead>
             <tr>
               <th>Location</th>
               <th>
                 <Term term="plan-type">Plan Types</Term>
               </th>
-              {group.key === "prior-plans" && <th>Years</th>}
+              <th>Plan Year</th>
               <th>
                 <Term term="office-type">Office Type</Term>
               </th>
@@ -90,7 +78,7 @@ const { planGroups } = Astro.props;
                   <span class="iso3">{row.iso3}</span>
                 </td>
                 <td>{row.plan_types.join(" / ") || "—"}</td>
-                {group.key === "prior-plans" && <td>{row.year_range ?? "—"}</td>}
+                <td>{row.plan_years?.join(" / ") || "—"}</td>
                 <td>{row.office_type || "—"}</td>
                 <td>{row.regional || "—"}</td>
                 <td class={row.inGis ? "flag-yes" : "flag-no"}>{row.inGis ? "Yes" : "No"}</td>
