@@ -1,0 +1,33 @@
+---
+import type { ScheduleGroup } from "../lib/loadData.ts";
+import Term from "./Term.astro";
+import WorkOrderTable from "./WorkOrderTable.astro";
+
+interface Props {
+  workByQuarter: ScheduleGroup[];
+  remaining: number;
+}
+
+const { workByQuarter, remaining } = Astro.props;
+---
+
+<section>
+  <h2>
+    <Term term="work-order">Work Orders</Term>
+    <span class={`count-chip ${remaining === 0 ? "done" : ""}`}>
+      {remaining === 0 ? "All done" : `${remaining} remaining`}
+    </span>
+  </h2>
+  <p class="section-desc">
+    All tracked work orders, grouped by{" "}
+    <Term term="planned-quarter">planned delivery quarter</Term>.
+  </p>
+
+  {
+    workByQuarter.length === 0 ? (
+      <p class="empty">No work orders yet.</p>
+    ) : (
+      <WorkOrderTable groups={workByQuarter} />
+    )
+  }
+</section>
