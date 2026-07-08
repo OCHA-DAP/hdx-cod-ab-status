@@ -97,18 +97,6 @@ export const GLOSSARY = {
     definition:
       "End-to-end flow of a work order from Backlog through Done — the sequence of statuses a work order passes through.",
   },
-  cycle: {
-    label: "Cycle",
-    definition: "A calendar-year batch of planned work orders.",
-  },
-  "current-cycle": {
-    label: "Current cycle",
-    definition: "The most recent year of work orders being actively managed.",
-  },
-  backlog: {
-    label: "Backlog",
-    definition: "Incomplete work orders carried over from prior cycles.",
-  },
   selected: {
     label: "Selected for Development",
     definition: "Work order has been opened and is queued for work.",

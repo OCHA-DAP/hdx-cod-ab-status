@@ -11,12 +11,6 @@ export interface PipelineCount {
   count: number;
 }
 
-export interface YearStat {
-  year: string;
-  pipeline: PipelineCount[];
-  total: number;
-}
-
 export interface WorkOrderRow {
   iso3: string;
   name_en: string;
@@ -97,6 +91,21 @@ function woOfficeTypeRank(s: string): number {
   if (s === "HAT") return 1;
   if (s === "RO") return 2;
   return 3;
+}
+
+// For picking one row per country: active work always wins, but otherwise a
+// completed order should represent the country over a queued backlog ticket
+// or an abandoned one — unlike statusRank (used for in-queue urgency
+// ordering), a shipped Done shouldn't be shadowed by a not-yet-started
+// Backlog for the same country.
+function countryDedupRank(status: string): number {
+  if (status === "blocked") return 0;
+  if (status === "in_progress") return 1;
+  if (status === "selected") return 2;
+  if (status === "done") return 3;
+  if (status === "backlog") return 4;
+  if (status === "cancelled") return 5;
+  return 6;
 }
 
 // Country's best-ever plan type outranks a lesser plan type from a more
@@ -199,7 +208,7 @@ export function loadData() {
 
   const m49 = parseCsv(m49Text);
   const plans = parseCsv(planText);
-  const workOrders = parseCsv(workText);
+  const workOrderRows = parseCsv(workText);
   const offices = parseCsv(officesText);
   const officeTypes = parseCsv(officeTypesText);
 
@@ -242,7 +251,7 @@ export function loadData() {
 
   // Most recent work order per iso3+year pair (for plan coverage matching)
   const latestWorkByIso3Year: Record<string, Record<string, string>> = {};
-  for (const wo of workOrders) {
+  for (const wo of workOrderRows) {
     const key = `${wo.iso3}:${wo.year}`;
     const cur = latestWorkByIso3Year[key];
     if (!cur || wo.creation_date > cur.creation_date) latestWorkByIso3Year[key] = wo;
@@ -275,7 +284,7 @@ export function loadData() {
     };
   }
 
-  const allRows = workOrders.map(buildRow);
+  const allRows = workOrderRows.map(buildRow);
 
   // Most active open (non-done) work order status per iso3
   const openWoByIso3: Record<string, string> = {};
@@ -287,55 +296,50 @@ export function loadData() {
     }
   }
 
-  // Determine cycle years (sorted ascending)
-  const years = [...new Set(allRows.map((r) => r.year))].sort();
-  const latestYear = years[years.length - 1];
+  // One row per country: a country can accrue multiple work orders across
+  // years (e.g. a cancelled request followed by a new one, or a completed
+  // minor fix alongside a still-queued backlog ticket), so keep only the
+  // most representative status (countryDedupRank), tie-broken by the most
+  // recent date — otherwise a newer-but-cancelled order could shadow an
+  // older order that actually finished and published.
+  const rowsByIso3 = new Map<string, WorkOrderRow[]>();
+  for (const r of allRows) {
+    if (!rowsByIso3.has(r.iso3)) rowsByIso3.set(r.iso3, []);
+    rowsByIso3.get(r.iso3)!.push(r);
+  }
+  const dedupedRows = [...rowsByIso3.values()].map((rows) =>
+    rows.reduce((best, r) => {
+      const rRank = countryDedupRank(r.work_order_status);
+      const bestRank = countryDedupRank(best.work_order_status);
+      if (rRank !== bestRank) return rRank < bestRank ? r : best;
+      const rDate = r.publication_date || r.created_date || "";
+      const bestDate = best.publication_date || best.created_date || "";
+      return rDate > bestDate ? r : best;
+    }),
+  );
 
-  // Per-year pipeline stats
-  const yearStats: YearStat[] = years.map((year) => {
-    const yearRows = allRows.filter((r) => r.year === year);
-    const countMap: Record<string, number> = {};
-    for (const r of yearRows)
-      countMap[r.work_order_status] = (countMap[r.work_order_status] ?? 0) + 1;
-    const pipeline = STATUS_ORDER.filter((s) => countMap[s]).map((s) => ({
-      status: s,
-      label: STATUS_LABELS[s],
-      count: countMap[s],
-    }));
-    return {
-      year,
-      pipeline,
-      total: yearRows.length,
-    };
-  });
+  // Overall pipeline stats across all work orders, regardless of year
+  const pipelineCountMap: Record<string, number> = {};
+  for (const r of dedupedRows)
+    pipelineCountMap[r.work_order_status] = (pipelineCountMap[r.work_order_status] ?? 0) + 1;
+  const pipeline: PipelineCount[] = STATUS_ORDER.filter((s) => pipelineCountMap[s]).map((s) => ({
+    status: s,
+    label: STATUS_LABELS[s],
+    count: pipelineCountMap[s],
+  }));
 
-  // Backlog: work orders from any year before the latest
-  const backlog = allRows
-    .filter((r) => r.year !== latestYear)
-    .sort(
-      (a, b) =>
-        statusRank(a.work_order_status) - statusRank(b.work_order_status) ||
-        woPlanTypeRank(a.plan_type) - woPlanTypeRank(b.plan_type) ||
-        woOfficeTypeRank(a.office_type) - woOfficeTypeRank(b.office_type) ||
-        (a.publication_date || a.created_date || "").localeCompare(
-          b.publication_date || b.created_date || "",
-        ),
-    );
-  const backlogByQuarter = groupByQuarter(backlog);
-
-  // Current cycle: all work orders from the latest year
-  const currentCycleWork = allRows
-    .filter((r) => r.year === latestYear)
-    .sort(
-      (a, b) =>
-        statusRank(a.work_order_status) - statusRank(b.work_order_status) ||
-        woPlanTypeRank(a.plan_type) - woPlanTypeRank(b.plan_type) ||
-        woOfficeTypeRank(a.office_type) - woOfficeTypeRank(b.office_type) ||
-        (a.publication_date || a.created_date || "").localeCompare(
-          b.publication_date || b.created_date || "",
-        ),
-    );
-  const currentByQuarter = groupByQuarter(currentCycleWork);
+  // All work orders, one per country, grouped by planned quarter (quarter
+  // values are year-prefixed, e.g. "2026-Q1", so chronological order holds)
+  const workOrders = [...dedupedRows].sort(
+    (a, b) =>
+      statusRank(a.work_order_status) - statusRank(b.work_order_status) ||
+      woPlanTypeRank(a.plan_type) - woPlanTypeRank(b.plan_type) ||
+      woOfficeTypeRank(a.office_type) - woOfficeTypeRank(b.office_type) ||
+      (a.publication_date || a.created_date || "").localeCompare(
+        b.publication_date || b.created_date || "",
+      ),
+  );
+  const workByQuarter = groupByQuarter(workOrders);
 
   // Plan coverage per year (newest first)
   const planCoverageByYear: PlanCoverageYear[] = Object.entries(plansByYear)
@@ -563,16 +567,13 @@ export function loadData() {
   ];
 
   return {
-    yearStats,
-    latestYear,
-    backlog,
-    backlogByQuarter,
-    currentCycleWork,
-    currentByQuarter,
+    pipeline,
+    workOrders,
+    workByQuarter,
     planCoverageByYear,
     planGroups,
-    total: allRows.length,
-    openTotal: allRows.filter(
+    total: dedupedRows.length,
+    openTotal: dedupedRows.filter(
       (r) => !["done", "backlog", "cancelled"].includes(r.work_order_status),
     ).length,
     lastUpdatedAt,

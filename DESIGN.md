@@ -94,7 +94,7 @@ An internal OCHA/HDX operational tool intended to live under `data.humdata.org`.
 
 `#007CE0` is the single accent, used for links, active tabs, section headings, and interactive elements. Hover and focus states darken to `#0056A3`.
 
-`#EDF6FD` is HDX's signature light-blue tint, used wherever something is selected or active (active tab fill, current-cycle card background, highlighted info boxes). It reads as "selected" to any regular HDX user.
+`#EDF6FD` is HDX's signature light-blue tint, used wherever something is selected or active (active tab fill, highlighted info boxes). It reads as "selected" to any regular HDX user.
 
 Surfaces are a two-level stack: white (`#FFFFFF`) cards on a `#F4F4F4` page background — the exact values HDX uses on its search and detail pages. Borders are `#CCCCCC` throughout, not a blue-gray.
 
@@ -119,8 +119,6 @@ Single-column, max 1200px, 35px side padding (matching HDX detail pages). Sectio
 **Count chips** — small inline numeric summaries. Neutral (`#EEEEEE`/`#888888`), warn, and done variants follow the status palette.
 
 **Table headers** — `#EEEEEE` background, label-caps, `position: sticky`.
-
-**Cycle cards** — current cycle uses `#EDF6FD` background to call it out; prior-year cards are plain white. No decoration beyond the border.
 
 ## Pitfalls
 

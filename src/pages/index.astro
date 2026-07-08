@@ -1,12 +1,11 @@
 ---
-import CycleOverview from "../components/CycleOverview.astro";
-import PriorBacklogSections from "../components/PriorBacklogSections.astro";
-import CurrentCycleSection from "../components/CurrentCycleSection.astro";
+import PipelineSummary from "../components/PipelineSummary.astro";
+import WorkOrdersSection from "../components/WorkOrdersSection.astro";
 import Layout from "../layouts/Layout.astro";
 import { loadData } from "../lib/loadData.ts";
 
 const data = loadData();
-const priorYears = data.yearStats.filter((y) => y.year !== data.latestYear);
+const remaining = data.workOrders.filter((r) => r.work_order_status !== "done").length;
 const totalInGis = data.planGroups.reduce(
   (sum, g) => sum + g.countries.filter((c) => c.inGis).length,
   0,
@@ -28,17 +27,7 @@ const lastUpdatedFormatted = data.lastUpdatedAt
   totalInGis={totalInGis}
   totalLocations={totalLocations}
 >
-  <CycleOverview yearStats={data.yearStats} latestYear={data.latestYear} />
+  <PipelineSummary pipeline={data.pipeline} />
 
-  <PriorBacklogSections
-    priorYears={priorYears}
-    backlog={data.backlog}
-    backlogByQuarter={data.backlogByQuarter}
-  />
-
-  <CurrentCycleSection
-    latestYear={data.latestYear}
-    currentCycleWork={data.currentCycleWork}
-    currentByQuarter={data.currentByQuarter}
-  />
+  <WorkOrdersSection workByQuarter={data.workByQuarter} remaining={remaining} />
 </Layout>

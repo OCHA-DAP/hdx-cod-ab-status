@@ -54,16 +54,14 @@ This is an **Astro** application (part of OCHA-DAP's HDX COD AB Status tooling) 
 
 ## Components
 
-| File                         | Purpose                                                                          |
-| ---------------------------- | -------------------------------------------------------------------------------- |
-| `CycleOverview.astro`        | Year-by-year pipeline summary cards (open counts, status breakdown, review gaps) |
-| `CurrentCycleSection.astro`  | Current year work orders organized by planned quarter and status                 |
-| `BacklogSection.astro`       | Incomplete work orders from a specific prior year                                |
-| `PriorBacklogSections.astro` | Renders a `BacklogSection` for each prior year with open items                   |
-| `WorkOrderTable.astro`       | Generic table for displaying work orders grouped by quarter                      |
-| `CoverageOverview.astro`     | Plan group cards showing GIS in/out ratios                                       |
-| `PlanCoverageSection.astro`  | Supporting component for plan group detail                                       |
-| `PreparednessSection.astro`  | Country-level table with plan types, GIS status, next review dates               |
+| File                        | Purpose                                                                      |
+| --------------------------- | ---------------------------------------------------------------------------- |
+| `PipelineSummary.astro`     | Overall pipeline status breakdown card (all work orders, regardless of year) |
+| `WorkOrdersSection.astro`   | All work orders organized by planned quarter and status, regardless of year  |
+| `WorkOrderTable.astro`      | Generic table for displaying work orders grouped by quarter                  |
+| `CoverageOverview.astro`    | Plan group cards showing GIS in/out ratios                                   |
+| `PlanCoverageSection.astro` | Supporting component for plan group detail                                   |
+| `PreparednessSection.astro` | Country-level table with plan types, GIS status, next review dates           |
 
 ## Data pipeline
 
