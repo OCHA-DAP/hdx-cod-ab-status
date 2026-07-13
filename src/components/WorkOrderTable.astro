@@ -15,12 +15,8 @@ function ageLabel(createdDate: string, endDate?: string): string | null {
   const created = new Date(createdDate + "T00:00:00");
   const end = endDate ? new Date(endDate + "T00:00:00") : new Date();
   const days = Math.floor((end.getTime() - created.getTime()) / (1000 * 60 * 60 * 24));
-  if (days > 31) {
-    const months = days / 30.44;
-    const formatted = months < 2 ? months.toFixed(1) : Math.round(months).toString();
-    return `${formatted} months`;
-  }
-  return `${days} day${days === 1 ? "" : "s"}`;
+  const weeks = Math.round(days / 7);
+  return `${weeks} week${weeks === 1 ? "" : "s"}`;
 }
 
 function ageTooltip(createdDate: string, publicationDate?: string): string | null {
